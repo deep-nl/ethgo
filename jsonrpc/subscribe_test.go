@@ -13,19 +13,19 @@ import (
 func TestSubscribeNewHead(t *testing.T) {
 	testutil.MultiAddr(t, func(s *testutil.TestServer, addr string) {
 		if strings.HasPrefix(addr, "http") {
+			t.Log("wrong url")
 			return
 		}
 
 		c, _ := NewClient(addr)
+		//c.SetMaxConnsLimit(0)
 		defer c.Close()
 
 		data := make(chan []byte)
 		cancel, err := c.Subscribe("newHeads", func(b []byte) {
 			data <- b
 		})
-		if err != nil {
-			t.Fatal(err)
-		}
+		assert.NoError(t, err)
 
 		var lastBlock *ethgo.Block
 		recv := func(ok bool) {
@@ -45,6 +45,7 @@ func TestSubscribeNewHead(t *testing.T) {
 					}
 				}
 				lastBlock = &block
+				t.Logf("Blocknumbe %v", lastBlock.Number)
 
 			case <-time.After(1 * time.Second):
 				if ok {
@@ -53,15 +54,23 @@ func TestSubscribeNewHead(t *testing.T) {
 			}
 		}
 
-		s.ProcessBlock()
+		// 重新把addr改为http
+		s = testutil.NewTestServer(t, "http://127.0.0.1:8545")
+
+		err = s.ProcessBlockRaw()
+		assert.NoError(t, err)
+
 		recv(true)
 
-		s.ProcessBlock()
+		err = s.ProcessBlockRaw()
+		assert.NoError(t, err)
 		recv(true)
+		t.Logf("Blocknumbe %v", lastBlock.Number)
 
 		assert.NoError(t, cancel())
 
-		s.ProcessBlock()
+		err = s.ProcessBlockRaw()
+		assert.NoError(t, err)
 		recv(false)
 
 		// subscription already closed

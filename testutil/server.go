@@ -5,17 +5,18 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"github.com/umbracle/ethgo/wallet"
 	"math/big"
 	"math/rand"
 	"net"
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
-	"github.com/ory/dockertest"
+	//"github.com/ory/dockertest"
 	"github.com/umbracle/ethgo"
 	"github.com/umbracle/ethgo/compiler"
 	"golang.org/x/crypto/sha3"
@@ -74,79 +75,84 @@ type TestServer struct {
 	client   *ethClient
 }
 
-// DeployTestServer creates a new Geth test server
-func DeployTestServer(t *testing.T, cb ServerConfigCallback) *TestServer {
-	tmpDir, err := ioutil.TempDir("/tmp", "geth-")
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
-
-	config := &TestServerConfig{}
-	if cb != nil {
-		cb(config)
-	}
-
-	args := []string{"--dev"}
-
-	// periodic mining
-	if config.Period != 0 {
-		args = append(args, "--dev.period", strconv.Itoa(config.Period))
-	}
-
-	// add data dir
-	args = append(args, "--datadir", "/eth1data")
-
-	// add ipcpath
-	args = append(args, "--ipcpath", "/eth1data/geth.ipc")
-
-	// enable rpc
-	args = append(args, "--http", "--http.addr", "0.0.0.0", "--http.api", "eth,net,web3,debug")
-
-	// enable ws
-	args = append(args, "--ws", "--ws.addr", "0.0.0.0")
-
-	// enable debug verbosity
-	args = append(args, "--verbosity", "4")
-
-	opts := &dockertest.RunOptions{
-		Repository: "ethereum/client-go",
-		Tag:        "v1.10.15",
-		Cmd:        args,
-		Mounts: []string{
-			tmpDir + ":/eth1data",
-		},
-	}
-
-	pool, err := dockertest.NewPool("")
-	if err != nil {
-		t.Fatalf("Could not connect to docker: %s", err)
-	}
-	resource, err := pool.RunWithOptions(opts)
-	if err != nil {
-		t.Fatalf("Could not start go-ethereum: %s", err)
-	}
-
-	closeFn := func() {
-		if err := pool.Purge(resource); err != nil {
-			t.Fatalf("Could not purge geth: %s", err)
-		}
-	}
-
-	ipAddr := resource.Container.NetworkSettings.IPAddress
-	addr := fmt.Sprintf("http://%s:8545", ipAddr)
-
-	if err := pool.Retry(func() error {
-		return testHTTPEndpoint(addr)
-	}); err != nil {
-		closeFn()
-	}
-
-	t.Cleanup(func() {
-		closeFn()
-	})
-
-	return NewTestServer(t, addr)
+type Server struct {
+	httpUrl string
+	wssUrl  string
 }
+
+// DeployTestServer creates a new Geth test server
+//func DeployTestServer(t *testing.T, cb ServerConfigCallback) *TestServer {
+//	tmpDir, err := os.MkdirTemp("/tmp", "geth-")
+//	if err != nil {
+//		t.Fatalf("err: %s", err)
+//	}
+//
+//	config := &TestServerConfig{}
+//	if cb != nil {
+//		cb(config)
+//	}
+//
+//	args := []string{"--dev"}
+//
+//	// periodic mining
+//	if config.Period != 0 {
+//		args = append(args, "--dev.period", strconv.Itoa(config.Period))
+//	}
+//
+//	// add data dir
+//	args = append(args, "--datadir", "/eth1data")
+//
+//	// add ipcpath
+//	args = append(args, "--ipcpath", "/eth1data/geth.ipc")
+//
+//	// enable rpc
+//	args = append(args, "--http", "--http.addr", "0.0.0.0", "--http.api", "eth,net,web3,debug")
+//
+//	// enable ws
+//	args = append(args, "--ws", "--ws.addr", "0.0.0.0")
+//
+//	// enable debug verbosity
+//	args = append(args, "--verbosity", "4")
+//
+//	opts := &dockertest.RunOptions{
+//		Repository: "ethereum/client-go",
+//		Tag:        "v1.10.15",
+//		Cmd:        args,
+//		Mounts: []string{
+//			tmpDir + ":/eth1data",
+//		},
+//	}
+//
+//	pool, err := dockertest.NewPool("")
+//	if err != nil {
+//		t.Fatalf("Could not connect to docker: %s", err)
+//	}
+//	resource, err := pool.RunWithOptions(opts)
+//	if err != nil {
+//		t.Fatalf("Could not start go-ethereum: %s", err)
+//	}
+//
+//	closeFn := func() {
+//		if err := pool.Purge(resource); err != nil {
+//			t.Fatalf("Could not purge geth: %s", err)
+//		}
+//	}
+//
+//	ipAddr := resource.Container.NetworkSettings.IPAddress
+//	addr := fmt.Sprintf("http://%s:8545", ipAddr)
+//
+//	if err := pool.Retry(func() error {
+//		return testHTTPEndpoint(addr)
+//	}); err != nil {
+//		closeFn()
+//	}
+//
+//	t.Cleanup(func() {
+//		closeFn()
+//	})
+//
+//	return NewTestServer(t, addr)
+//}
 
 func NewTestServer(t *testing.T, addrs ...string) *TestServer {
 	var addr string
@@ -154,7 +160,8 @@ func NewTestServer(t *testing.T, addrs ...string) *TestServer {
 		addr = addrs[0]
 	} else {
 		// default address
-		addr = "http://127.0.0.1:8545"
+		//addr = "http://127.0.0.1:8545"
+		addr = "ws://127.0.0.1:8545"
 	}
 
 	server := &TestServer{
@@ -162,6 +169,11 @@ func NewTestServer(t *testing.T, addrs ...string) *TestServer {
 	}
 
 	server.client = &ethClient{addr}
+	if strings.HasPrefix(addr, "ws") {
+		t.Log("websocket url")
+		server.accounts = append(server.accounts, ethgo.HexToAddress(FromAddr))
+		return server
+	}
 	if err := server.client.call("eth_accounts", &server.accounts); err != nil {
 		t.Fatal(err)
 	}
@@ -189,7 +201,7 @@ func (t *TestServer) HTTPAddr() string {
 	return fmt.Sprintf(t.addr)
 }
 
-// ProcessBlock processes a new block
+// ProcessBlockWithReceipt ProcessBlock processes a new block
 func (t *TestServer) ProcessBlockWithReceipt() (*ethgo.Receipt, error) {
 	receipt, err := t.SendTxn(&ethgo.Transaction{
 		From:  t.accounts[0],
@@ -199,8 +211,24 @@ func (t *TestServer) ProcessBlockWithReceipt() (*ethgo.Receipt, error) {
 	return receipt, err
 }
 
+// ProcessWithReceipt ProcessBlock processes a new block via sendrawTransaction
+func (t *TestServer) ProcessWithReceipt() (*ethgo.Receipt, error) {
+	receipt, err := t.SendRawTxn(&ethgo.Transaction{
+		From:  t.accounts[0],
+		To:    &DummyAddr,
+		Value: big.NewInt(1e18),
+	})
+	return receipt, err
+}
+
 func (t *TestServer) ProcessBlock() error {
 	_, err := t.ProcessBlockWithReceipt()
+	return err
+}
+
+// deep add
+func (t *TestServer) ProcessBlockRaw() error {
+	_, err := t.ProcessWithReceipt()
 	return err
 }
 
@@ -262,10 +290,41 @@ func (t *TestServer) SendTxn(txn *ethgo.Transaction) (*ethgo.Receipt, error) {
 	return t.WaitForReceipt(hash)
 }
 
+func (t *TestServer) SendRawTxn(txn *ethgo.Transaction) (*ethgo.Receipt, error) {
+	if isEmptyAddr(txn.From) {
+		txn.From = t.Account(0)
+	}
+	if txn.GasPrice == 0 {
+		txn.GasPrice = DefaultGasPrice
+	}
+	if txn.Gas == 0 {
+		txn.Gas = DefaultGasLimit
+	}
+	key := wallet.KeyFromString(FromKey)
+
+	signer := wallet.NewEIP155Signer(ethgo.Local)
+	txn, err := signer.SignTx(txn, key)
+	if err != nil {
+		return nil, err
+	}
+	data, err := txn.MarshalRLPTo(nil)
+	if err != nil {
+		return nil, err
+	}
+	var hash ethgo.Hash
+	hexData := "0x" + hex.EncodeToString(data)
+	if err := t.client.call("eth_sendRawTransaction", &hash, hexData); err != nil {
+		return nil, err
+	}
+
+	return t.WaitForReceipt(hash)
+}
+
 // WaitForReceipt waits for the receipt
 func (t *TestServer) WaitForReceipt(hash ethgo.Hash) (*ethgo.Receipt, error) {
 	var receipt *ethgo.Receipt
 	var count uint64
+	// Todo 学习这种loop方法
 	for {
 		err := t.client.call("eth_getTransactionReceipt", &receipt, hash)
 		if err != nil {

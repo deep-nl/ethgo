@@ -7,7 +7,7 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-// HTTP is an http transport
+// HTTP is a http transport
 type HTTP struct {
 	addr    string
 	client  *fasthttp.Client

@@ -3,6 +3,7 @@ package jsonrpc
 import (
 	"bytes"
 	"encoding/hex"
+	"github.com/umbracle/ethgo/wallet"
 	"math/big"
 	"strings"
 	"testing"
@@ -145,6 +146,7 @@ func TestEthSendTransaction(t *testing.T) {
 		Gas:      testutil.DefaultGasLimit,
 		To:       &testutil.DummyAddr,
 		Value:    big.NewInt(10),
+		Nonce:    ethgo.Local,
 	}
 	hash, err := c.Eth().SendTransaction(txn)
 	assert.NoError(t, err)
@@ -159,6 +161,41 @@ func TestEthSendTransaction(t *testing.T) {
 			break
 		}
 	}
+}
+
+func TestEth_SendRawTransaction(t *testing.T) {
+	s := testutil.NewTestServer(t)
+
+	c, _ := NewClient(s.HTTPAddr())
+	//c.SetMaxConnsLimit(0)
+	//toAddr := ethgo.HexToAddress(testutil.ToAddr)
+	txn := &ethgo.Transaction{
+		From:     s.Account(0),
+		GasPrice: testutil.DefaultGasPrice,
+		Gas:      testutil.DefaultGasLimit,
+		To:       &testutil.DummyAddr,
+		Value:    big.NewInt(testutil.Value),
+	}
+
+	fromKey := testutil.FromKey
+	key := wallet.KeyFromString(fromKey)
+
+	signer := wallet.NewEIP155Signer(ethgo.Local)
+	txn, err := signer.SignTx(txn, key)
+	assert.NoError(t, err)
+	data, err := txn.MarshalRLPTo(nil)
+	assert.NoError(t, err)
+	hash, err := c.Eth().SendRawTransaction(data)
+	assert.NoError(t, err)
+	t.Logf("hash: %v", hash)
+
+	_, err = s.WaitForReceipt(hash)
+	assert.NoError(t, err)
+
+	balance, err := c.Eth().GetBalance(testutil.DummyAddr, ethgo.Latest)
+	assert.NoError(t, err)
+	assert.Equal(t, balance, txn.Value)
+
 }
 
 func TestEthEstimateGas(t *testing.T) {
@@ -250,7 +287,8 @@ func TestEthGetNonce(t *testing.T) {
 
 	c, _ := NewClient(s.HTTPAddr())
 
-	receipt, err := s.ProcessBlockWithReceipt()
+	//receipt, err := s.ProcessBlockWithReceipt()
+	receipt, err := s.ProcessWithReceipt()
 	assert.NoError(t, err)
 
 	// query the balance with different options
@@ -260,6 +298,7 @@ func TestEthGetNonce(t *testing.T) {
 		ethgo.BlockNumber(receipt.BlockNumber),
 	}
 	for _, ca := range cases {
+		t.Logf("Block: %v", ca)
 		num, err := c.Eth().GetNonce(s.Account(0), ca)
 		assert.NoError(t, err)
 		assert.NotEqual(t, num, uint64(0))
@@ -276,7 +315,8 @@ func TestEthTransactionsInBlock(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Process a block with a transaction
-	assert.NoError(t, s.ProcessBlock())
+	//assert.NoError(t, s.ProcessBlock())
+	assert.NoError(t, s.ProcessBlockRaw())
 
 	latest, err := c.Eth().BlockNumber()
 	require.NoError(t, err)
@@ -340,7 +380,9 @@ func TestEthGetStorageAt(t *testing.T) {
 }
 
 func TestEthFeeHistory(t *testing.T) {
-	c, _ := NewClient(testutil.TestInfuraEndpoint(t))
+	url := "https://goerli.infura.io/v3/c436c6349f034f7ba79623c7e6fe4014"
+	//c, _ := NewClient(testutil.TestInfuraEndpoint(t))
+	c, _ := NewClient(url)
 
 	lastBlock, err := c.Eth().BlockNumber()
 	assert.NoError(t, err)

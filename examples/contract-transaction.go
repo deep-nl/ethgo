@@ -33,6 +33,7 @@ func contractTransaction() {
 		contract.WithSender(key),
 	}
 	c := contract.NewContract(addr, abiContract, opts...)
+
 	txn, err := c.Txn("transferFrom", ethgo.Latest)
 	handleErr(err)
 

@@ -4,6 +4,8 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
+	"encoding/hex"
+	"fmt"
 
 	"github.com/btcsuite/btcd/btcec"
 	"github.com/umbracle/ethgo"
@@ -52,6 +54,21 @@ func NewKey(priv *ecdsa.PrivateKey) *Key {
 		pub:  &priv.PublicKey,
 		addr: pubKeyToAddress(&priv.PublicKey),
 	}
+}
+
+func KeyFromString(privKeyStr string) *Key {
+	// Parse the string representation of the private key
+	privKeyBytes, err := hex.DecodeString(privKeyStr)
+	if err != nil {
+		fmt.Println("Error decoding private key:", err)
+		return nil
+	}
+
+	privKeyBtcec, _ := btcec.PrivKeyFromBytes(btcec.S256(), privKeyBytes)
+
+	// Convert the *btcec.PrivateKey to *ecdsa.PrivateKey
+	privKeyEcdsa := (*ecdsa.PrivateKey)(privKeyBtcec.ToECDSA())
+	return NewKey(privKeyEcdsa)
 }
 
 func pubKeyToAddress(pub *ecdsa.PublicKey) (addr ethgo.Address) {

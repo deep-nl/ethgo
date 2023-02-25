@@ -15,4 +15,6 @@ const (
 
 	// Goerli is the Clique testnet
 	Goerli Network = 5
+
+	Local uint64 = 1337
 )
