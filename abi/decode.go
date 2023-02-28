@@ -3,11 +3,11 @@ package abi
 import (
 	"encoding/binary"
 	"fmt"
+	"github.com/deep-nl/ethgo/core"
 	"math/big"
 	"reflect"
 	"strconv"
 
-	"github.com/deep-nl/ethgo"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -111,8 +111,8 @@ var (
 		big.NewInt(-1))
 )
 
-func readAddr(b []byte) (ethgo.Address, error) {
-	res := ethgo.Address{}
+func readAddr(b []byte) (core.Address, error) {
+	res := core.Address{}
 	if len(b) != 32 {
 		return res, fmt.Errorf("len is not correct")
 	}

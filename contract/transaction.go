@@ -2,25 +2,25 @@ package contract
 
 import (
 	"fmt"
-	"github.com/deep-nl/ethgo"
+	"github.com/deep-nl/ethgo/core"
 	"github.com/deep-nl/ethgo/jsonrpc"
 	"github.com/deep-nl/ethgo/wallet"
 	"math/big"
 )
 
 type jsonrpcTransaction struct {
-	to      ethgo.Address
+	to      core.Address
 	input   []byte
-	hash    ethgo.Hash
+	hash    core.Hash
 	opts    *TxnOpts
-	key     ethgo.Key
+	key     core.Key
 	client  *jsonrpc.Eth
-	txn     *ethgo.Transaction
+	txn     *core.Transaction
 	txnRaw  []byte
 	eip1559 bool
 }
 
-func (j *jsonrpcTransaction) Hash() ethgo.Hash {
+func (j *jsonrpcTransaction) Hash() core.Hash {
 	return j.hash
 }
 
@@ -41,14 +41,14 @@ func (j *jsonrpcTransaction) Build() error {
 	}
 	// estimate gas limit
 	if j.opts.GasLimit == 0 {
-		msg := &ethgo.CallMsg{
+		msg := &core.CallMsg{
 			From:     from,
 			To:       nil,
 			Data:     j.input,
 			Value:    j.opts.Value,
 			GasPrice: j.opts.GasPrice,
 		}
-		if j.to != ethgo.ZeroAddress {
+		if j.to != core.ZeroAddress {
 			msg.To = &j.to
 		}
 		j.opts.GasLimit, err = j.client.EstimateGas(msg)
@@ -58,7 +58,7 @@ func (j *jsonrpcTransaction) Build() error {
 	}
 	// calculate the nonce
 	if j.opts.Nonce == 0 {
-		j.opts.Nonce, err = j.client.GetNonce(from, ethgo.Latest)
+		j.opts.Nonce, err = j.client.GetNonce(from, core.Latest)
 		if err != nil {
 			return fmt.Errorf("failed to calculate nonce: %v", err)
 		}
@@ -70,7 +70,7 @@ func (j *jsonrpcTransaction) Build() error {
 	}
 
 	// send transaction
-	rawTxn := &ethgo.Transaction{
+	rawTxn := &core.Transaction{
 		From:     from,
 		Input:    j.input,
 		GasPrice: j.opts.GasPrice,
@@ -79,12 +79,12 @@ func (j *jsonrpcTransaction) Build() error {
 		Nonce:    j.opts.Nonce,
 		ChainID:  chainID,
 	}
-	if j.to != ethgo.ZeroAddress {
+	if j.to != core.ZeroAddress {
 		rawTxn.To = &j.to
 	}
 
 	if j.eip1559 {
-		rawTxn.Type = ethgo.TransactionDynamicFee
+		rawTxn.Type = core.TransactionDynamicFee
 
 		// use gas price as fee data
 		gasPrice, err := j.client.GasPrice()
@@ -125,8 +125,8 @@ func (j *jsonrpcTransaction) Do() error {
 	return nil
 }
 
-func (j *jsonrpcTransaction) Wait() (*ethgo.Receipt, error) {
-	if (j.hash == ethgo.Hash{}) {
+func (j *jsonrpcTransaction) Wait() (*core.Receipt, error) {
+	if (j.hash == core.Hash{}) {
 		panic("transaction not executed")
 	}
 

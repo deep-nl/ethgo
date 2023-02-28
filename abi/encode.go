@@ -3,12 +3,11 @@ package abi
 import (
 	"encoding/hex"
 	"fmt"
+	"github.com/deep-nl/ethgo/core"
 	"math/big"
 	"reflect"
 	"strconv"
 	"strings"
-
-	"github.com/deep-nl/ethgo"
 )
 
 var (
@@ -190,7 +189,7 @@ func encodeAddress(v reflect.Value) ([]byte, error) {
 		v = convertArrayToBytes(v)
 	}
 	if v.Kind() == reflect.String {
-		var addr ethgo.Address
+		var addr core.Address
 		if err := addr.UnmarshalText([]byte(v.String())); err != nil {
 			return nil, err
 		}

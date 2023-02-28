@@ -2,9 +2,9 @@ package ens
 
 import (
 	"fmt"
+	"github.com/deep-nl/ethgo/core"
 	"log"
 
-	"github.com/deep-nl/ethgo"
 	"github.com/deep-nl/ethgo/builtin/ens"
 	"github.com/deep-nl/ethgo/jsonrpc"
 )
@@ -13,12 +13,12 @@ type EnsConfig struct {
 	Logger   *log.Logger
 	Client   *jsonrpc.Client
 	Addr     string
-	Resolver ethgo.Address
+	Resolver core.Address
 }
 
 type EnsOption func(*EnsConfig)
 
-func WithResolver(resolver ethgo.Address) EnsOption {
+func WithResolver(resolver core.Address) EnsOption {
 	return func(c *EnsConfig) {
 		c.Resolver = resolver
 	}
@@ -64,7 +64,7 @@ func NewENS(opts ...EnsOption) (*ENS, error) {
 		config.Client = client
 	}
 
-	if config.Resolver == ethgo.ZeroAddress {
+	if config.Resolver == core.ZeroAddress {
 		// try to get the resolver address from the builtin list
 		chainID, err := config.Client.Eth().ChainID()
 		if err != nil {
@@ -82,12 +82,12 @@ func NewENS(opts ...EnsOption) (*ENS, error) {
 	return ens, nil
 }
 
-func (e *ENS) Resolve(name string) (ethgo.Address, error) {
+func (e *ENS) Resolve(name string) (core.Address, error) {
 	resolver := ens.NewENSResolver(e.config.Resolver, e.config.Client)
 	return resolver.Resolve(name)
 }
 
-func (e *ENS) ReverseResolve(addr ethgo.Address) (string, error) {
+func (e *ENS) ReverseResolve(addr core.Address) (string, error) {
 	resolver := ens.NewENSResolver(e.config.Resolver, e.config.Client)
 	return resolver.ReverseResolve(addr)
 }

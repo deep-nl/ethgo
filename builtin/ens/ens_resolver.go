@@ -1,8 +1,8 @@
 package ens
 
 import (
-	"github.com/deep-nl/ethgo"
 	"github.com/deep-nl/ethgo/contract"
+	"github.com/deep-nl/ethgo/core"
 	"github.com/deep-nl/ethgo/jsonrpc"
 	"strings"
 )
@@ -12,11 +12,11 @@ type ENSResolver struct {
 	provider *jsonrpc.Eth
 }
 
-func NewENSResolver(addr ethgo.Address, provider *jsonrpc.Client) *ENSResolver {
+func NewENSResolver(addr core.Address, provider *jsonrpc.Client) *ENSResolver {
 	return &ENSResolver{NewENS(addr, contract.WithJsonRPC(provider.Eth())), provider.Eth()}
 }
 
-func (e *ENSResolver) Resolve(addr string, block ...ethgo.BlockNumber) (res ethgo.Address, err error) {
+func (e *ENSResolver) Resolve(addr string, block ...core.BlockNumber) (res core.Address, err error) {
 	addrHash := NameHash(addr)
 	resolver, err := e.prepareResolver(addrHash, block...)
 	if err != nil {
@@ -26,11 +26,11 @@ func (e *ENSResolver) Resolve(addr string, block ...ethgo.BlockNumber) (res ethg
 	return
 }
 
-func addressToReverseDomain(addr ethgo.Address) string {
+func addressToReverseDomain(addr core.Address) string {
 	return strings.ToLower(strings.TrimPrefix(addr.String(), "0x")) + ".addr.reverse"
 }
 
-func (e *ENSResolver) ReverseResolve(addr ethgo.Address, block ...ethgo.BlockNumber) (res string, err error) {
+func (e *ENSResolver) ReverseResolve(addr core.Address, block ...core.BlockNumber) (res string, err error) {
 	addrHash := NameHash(addressToReverseDomain(addr))
 
 	resolver, err := e.prepareResolver(addrHash, block...)
@@ -41,7 +41,7 @@ func (e *ENSResolver) ReverseResolve(addr ethgo.Address, block ...ethgo.BlockNum
 	return
 }
 
-func (e *ENSResolver) prepareResolver(inputHash ethgo.Hash, block ...ethgo.BlockNumber) (*Resolver, error) {
+func (e *ENSResolver) prepareResolver(inputHash core.Hash, block ...core.BlockNumber) (*Resolver, error) {
 	resolverAddr, err := e.e.Resolver(inputHash, block...)
 	if err != nil {
 		return nil, err

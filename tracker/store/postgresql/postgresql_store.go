@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"fmt"
+	"github.com/deep-nl/ethgo/core"
 	"strings"
 
-	"github.com/deep-nl/ethgo"
 	"github.com/deep-nl/ethgo/tracker/store"
 	"github.com/jmoiron/sqlx"
 
@@ -107,7 +107,7 @@ func (e *Entry) LastIndex() (uint64, error) {
 }
 
 // StoreLogs implements the store interface
-func (e *Entry) StoreLogs(logs []*ethgo.Log) error {
+func (e *Entry) StoreLogs(logs []*core.Log) error {
 	lastIndex, err := e.LastIndex()
 	if err != nil {
 		return err
@@ -158,7 +158,7 @@ func (e *Entry) RemoveLogs(indx uint64) error {
 }
 
 // GetLog implements the store interface
-func (e *Entry) GetLog(indx uint64, log *ethgo.Log) error {
+func (e *Entry) GetLog(indx uint64, log *core.Log) error {
 	obj := logObj{}
 	if err := e.db.Get(&obj, "SELECT * FROM "+e.table+" WHERE indx=$1", indx); err != nil {
 		return err
@@ -177,9 +177,9 @@ func (e *Entry) GetLog(indx uint64, log *ethgo.Log) error {
 	}
 
 	if obj.Topics != "" {
-		log.Topics = []ethgo.Hash{}
+		log.Topics = []core.Hash{}
 		for _, item := range strings.Split(obj.Topics, ",") {
-			var topic ethgo.Hash
+			var topic core.Hash
 			if err := topic.UnmarshalText([]byte(item)); err != nil {
 				return err
 			}

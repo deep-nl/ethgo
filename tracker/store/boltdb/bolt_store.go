@@ -3,8 +3,8 @@ package trackerboltdb
 import (
 	"bytes"
 	"encoding/binary"
+	"github.com/deep-nl/ethgo/core"
 
-	"github.com/deep-nl/ethgo"
 	"github.com/deep-nl/ethgo/tracker/store"
 	bolt "go.etcd.io/bbolt"
 )
@@ -144,12 +144,12 @@ func (e *Entry) LastIndex() (uint64, error) {
 }
 
 // StoreLog implements the store interface
-func (e *Entry) StoreLog(log *ethgo.Log) error {
-	return e.StoreLogs([]*ethgo.Log{log})
+func (e *Entry) StoreLog(log *core.Log) error {
+	return e.StoreLogs([]*core.Log{log})
 }
 
 // StoreLogs implements the store interface
-func (e *Entry) StoreLogs(logs []*ethgo.Log) error {
+func (e *Entry) StoreLogs(logs []*core.Log) error {
 	tx, err := e.conn.Begin(true)
 	if err != nil {
 		return err
@@ -197,7 +197,7 @@ func (e *Entry) RemoveLogs(indx uint64) error {
 }
 
 // GetLog implements the store interface
-func (e *Entry) GetLog(indx uint64, log *ethgo.Log) error {
+func (e *Entry) GetLog(indx uint64, log *core.Log) error {
 	txn, err := e.conn.Begin(false)
 	if err != nil {
 		return err

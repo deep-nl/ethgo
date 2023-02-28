@@ -2,10 +2,10 @@ package contract
 
 import (
 	"encoding/hex"
+	"github.com/deep-nl/ethgo/core"
 	"math/big"
 	"testing"
 
-	"github.com/deep-nl/ethgo"
 	"github.com/deep-nl/ethgo/abi"
 	"github.com/deep-nl/ethgo/jsonrpc"
 	"github.com/deep-nl/ethgo/testutil"
@@ -16,7 +16,7 @@ import (
 
 var (
 	addr0  = "0x0000000000000000000000000000000000000000"
-	addr0B = ethgo.HexToAddress(addr0)
+	addr0B = core.HexToAddress(addr0)
 )
 
 func TestContract_NoInput(t *testing.T) {
@@ -36,7 +36,7 @@ func TestContract_NoInput(t *testing.T) {
 	p, _ := jsonrpc.NewClient(s.HTTPAddr())
 	c := NewContract(addr, abi0, WithJsonRPC(p.Eth()))
 
-	vals, err := c.Call("set", ethgo.Latest)
+	vals, err := c.Call("set", core.Latest)
 	assert.NoError(t, err)
 	assert.Equal(t, vals["0"], big.NewInt(1))
 
@@ -46,7 +46,7 @@ func TestContract_NoInput(t *testing.T) {
 	assert.NoError(t, err)
 
 	c1 := NewContract(addr, abi1, WithJsonRPC(p.Eth()))
-	vals, err = c1.Call("set", ethgo.Latest)
+	vals, err = c1.Call("set", core.Latest)
 	assert.NoError(t, err)
 	assert.Equal(t, vals["0"], big.NewInt(1))
 }
@@ -65,7 +65,7 @@ func TestContract_IO(t *testing.T) {
 
 	c := NewContract(addr, abi, WithJsonRPCEndpoint(s.HTTPAddr()))
 
-	resp, err := c.Call("setA", ethgo.Latest, addr0B, 1000)
+	resp, err := c.Call("setA", core.Latest, addr0B, 1000)
 	assert.NoError(t, err)
 
 	assert.Equal(t, resp["0"], addr0B)
@@ -88,10 +88,10 @@ func TestContract_From(t *testing.T) {
 	abi, err := abi.NewABI(contract.Abi)
 	assert.NoError(t, err)
 
-	from := ethgo.Address{0x1}
+	from := core.Address{0x1}
 	c := NewContract(addr, abi, WithSender(from), WithJsonRPCEndpoint(s.HTTPAddr()))
 
-	resp, err := c.Call("example", ethgo.Latest)
+	resp, err := c.Call("example", core.Latest)
 	assert.NoError(t, err)
 	assert.Equal(t, resp["0"], from)
 }
@@ -117,7 +117,7 @@ func TestContract_Deploy(t *testing.T) {
 	bin, err := hex.DecodeString(artifact.Bin)
 	assert.NoError(t, err)
 
-	txn, err := DeployContract(abi, bin, []interface{}{ethgo.Address{0x1}, 1000}, WithJsonRPC(p.Eth()), WithSender(key))
+	txn, err := DeployContract(abi, bin, []interface{}{core.Address{0x1}, 1000}, WithJsonRPC(p.Eth()), WithSender(key))
 	assert.NoError(t, err)
 
 	assert.NoError(t, txn.Do())
@@ -125,11 +125,11 @@ func TestContract_Deploy(t *testing.T) {
 	assert.NoError(t, err)
 
 	i := NewContract(receipt.ContractAddress, abi, WithJsonRPC(p.Eth()))
-	resp, err := i.Call("val_0", ethgo.Latest)
+	resp, err := i.Call("val_0", core.Latest)
 	assert.NoError(t, err)
-	assert.Equal(t, resp["0"], ethgo.Address{0x1})
+	assert.Equal(t, resp["0"], core.Address{0x1})
 
-	resp, err = i.Call("val_1", ethgo.Latest)
+	resp, err = i.Call("val_1", core.Latest)
 	assert.NoError(t, err)
 	assert.Equal(t, resp["0"], big.NewInt(1000))
 }
@@ -194,17 +194,17 @@ func TestContract_CallAtBlock(t *testing.T) {
 
 	contract := NewContract(addr, abi, WithJsonRPCEndpoint(s.HTTPAddr()), WithSender(key))
 
-	checkVal := func(block ethgo.BlockNumber, expected *big.Int) {
+	checkVal := func(block core.BlockNumber, expected *big.Int) {
 		resp, err := contract.Call("getVal", block)
 		assert.NoError(t, err)
 		assert.Equal(t, resp["0"], expected)
 	}
 
 	// initial value is 1
-	checkVal(ethgo.Latest, big.NewInt(1))
+	checkVal(core.Latest, big.NewInt(1))
 
 	// send a transaction to update the state
-	var receipt *ethgo.Receipt
+	var receipt *core.Receipt
 	{
 		txn, err := contract.Txn("change")
 		assert.NoError(t, err)
@@ -219,10 +219,10 @@ func TestContract_CallAtBlock(t *testing.T) {
 	// validate the state at different blocks
 	{
 		// value at receipt block is 2
-		checkVal(ethgo.BlockNumber(receipt.BlockNumber), big.NewInt(2))
+		checkVal(core.BlockNumber(receipt.BlockNumber), big.NewInt(2))
 
 		// value at previous block is 1
-		checkVal(ethgo.BlockNumber(receipt.BlockNumber-1), big.NewInt(1))
+		checkVal(core.BlockNumber(receipt.BlockNumber-1), big.NewInt(1))
 	}
 }
 
@@ -260,7 +260,7 @@ func TestContract_SendValueContractCall(t *testing.T) {
 	assert.NoError(t, err)
 
 	client, _ := jsonrpc.NewClient(s.HTTPAddr())
-	found, err := client.Eth().GetBalance(addr, ethgo.Latest)
+	found, err := client.Eth().GetBalance(addr, core.Latest)
 	assert.NoError(t, err)
 	assert.Equal(t, found, balance)
 }

@@ -3,17 +3,17 @@ package contract
 import (
 	"encoding/hex"
 	"fmt"
+	"github.com/deep-nl/ethgo/core"
 	"math/big"
 
-	"github.com/deep-nl/ethgo"
 	"github.com/deep-nl/ethgo/abi"
 	"github.com/deep-nl/ethgo/jsonrpc"
 )
 
 // Provider handles the interactions with the Ethereum 1x node
 type Provider interface {
-	Call(ethgo.Address, []byte, *CallOpts) ([]byte, error)
-	Txn(ethgo.Address, ethgo.Key, []byte) (Txn, error)
+	Call(core.Address, []byte, *CallOpts) ([]byte, error)
+	Txn(core.Address, core.Key, []byte) (Txn, error)
 }
 
 type jsonRPCNodeProvider struct {
@@ -21,12 +21,12 @@ type jsonRPCNodeProvider struct {
 	eip1559 bool
 }
 
-func (j *jsonRPCNodeProvider) Call(addr ethgo.Address, input []byte, opts *CallOpts) ([]byte, error) {
-	msg := &ethgo.CallMsg{
+func (j *jsonRPCNodeProvider) Call(addr core.Address, input []byte, opts *CallOpts) ([]byte, error) {
+	msg := &core.CallMsg{
 		To:   &addr,
 		Data: input,
 	}
-	if opts.From != ethgo.ZeroAddress {
+	if opts.From != core.ZeroAddress {
 		msg.From = opts.From
 	}
 	rawStr, err := j.client.Call(msg, opts.Block)
@@ -40,7 +40,7 @@ func (j *jsonRPCNodeProvider) Call(addr ethgo.Address, input []byte, opts *CallO
 	return raw, nil
 }
 
-func (j *jsonRPCNodeProvider) Txn(addr ethgo.Address, key ethgo.Key, input []byte) (Txn, error) {
+func (j *jsonRPCNodeProvider) Txn(addr core.Address, key core.Key, input []byte) (Txn, error) {
 	txn := &jsonrpcTransaction{
 		opts:    &TxnOpts{},
 		input:   input,
@@ -54,17 +54,17 @@ func (j *jsonRPCNodeProvider) Txn(addr ethgo.Address, key ethgo.Key, input []byt
 
 // Txn is the transaction object returned
 type Txn interface {
-	Hash() ethgo.Hash
+	Hash() core.Hash
 	WithOpts(opts *TxnOpts)
 	Do() error
-	Wait() (*ethgo.Receipt, error)
+	Wait() (*core.Receipt, error)
 }
 
 type Opts struct {
 	JsonRPCEndpoint string
 	JsonRPCClient   *jsonrpc.Eth
 	Provider        Provider
-	Sender          ethgo.Key
+	Sender          core.Key
 	EIP1559         bool
 }
 
@@ -88,7 +88,7 @@ func WithProvider(provider Provider) ContractOption {
 	}
 }
 
-func WithSender(sender ethgo.Key) ContractOption {
+func WithSender(sender core.Key) ContractOption {
 	return func(o *Opts) {
 		o.Sender = sender
 	}
@@ -101,12 +101,12 @@ func WithEIP1559() ContractOption {
 }
 
 func DeployContract(abi *abi.ABI, bin []byte, args []interface{}, opts ...ContractOption) (Txn, error) {
-	a := NewContract(ethgo.Address{}, abi, opts...)
+	a := NewContract(core.Address{}, abi, opts...)
 	a.bin = bin
 	return a.Txn("constructor", args...)
 }
 
-func NewContract(addr ethgo.Address, abi *abi.ABI, opts ...ContractOption) *Contract {
+func NewContract(addr core.Address, abi *abi.ABI, opts ...ContractOption) *Contract {
 	opt := &Opts{
 		JsonRPCEndpoint: "http://localhost:8545",
 	}
@@ -136,11 +136,11 @@ func NewContract(addr ethgo.Address, abi *abi.ABI, opts ...ContractOption) *Cont
 
 // Contract is a wrapper to make abi calls to contract with a state provider
 type Contract struct {
-	addr     ethgo.Address
+	addr     core.Address
 	abi      *abi.ABI
 	bin      []byte
 	provider Provider
-	key      ethgo.Key
+	key      core.Key
 }
 
 func (a *Contract) GetABI() *abi.ABI {
@@ -196,11 +196,11 @@ func (a *Contract) Txn(method string, args ...interface{}) (Txn, error) {
 }
 
 type CallOpts struct {
-	Block ethgo.BlockNumber
-	From  ethgo.Address
+	Block core.BlockNumber
+	From  core.Address
 }
 
-func (a *Contract) Call(method string, block ethgo.BlockNumber, args ...interface{}) (map[string]interface{}, error) {
+func (a *Contract) Call(method string, block core.BlockNumber, args ...interface{}) (map[string]interface{}, error) {
 	m := a.abi.GetMethod(method)
 	if m == nil {
 		return nil, fmt.Errorf("method %s not found", method)

@@ -3,6 +3,7 @@ package abi
 import (
 	"encoding/hex"
 	"fmt"
+	"github.com/deep-nl/ethgo/core"
 	"math/big"
 	"math/rand"
 	"os"
@@ -11,7 +12,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/deep-nl/ethgo"
 	"github.com/deep-nl/ethgo/compiler"
 	"github.com/deep-nl/ethgo/testutil"
 )
@@ -63,7 +63,7 @@ func TestEncoding(t *testing.T) {
 		},
 		{
 			"address[]",
-			[]ethgo.Address{{1}, {2}},
+			[]core.Address{{1}, {2}},
 		},
 		{
 			"bytes10[]",
@@ -170,7 +170,7 @@ func TestEncoding(t *testing.T) {
 			// tuple with array slice
 			"tuple(address[] a)",
 			map[string]interface{}{
-				"a": []ethgo.Address{
+				"a": []core.Address{
 					{0x1},
 				},
 			},
@@ -334,7 +334,7 @@ func TestEncoding(t *testing.T) {
 
 func TestEncodingBestEffort(t *testing.T) {
 	strAddress := "0xdbb881a51CD4023E4400CEF3ef73046743f08da3"
-	ethAddress := ethgo.HexToAddress(strAddress)
+	ethAddress := core.HexToAddress(strAddress)
 	overflowBigInt, _ := new(big.Int).SetString("50000000000000000000000000000000000000", 10)
 
 	cases := []struct {
@@ -395,7 +395,7 @@ func TestEncodingBestEffort(t *testing.T) {
 		{
 			"address[]",
 			[]interface{}{strAddress, strAddress},
-			[]ethgo.Address{ethAddress, ethAddress},
+			[]core.Address{ethAddress, ethAddress},
 		},
 		{
 			"uint8[]",
@@ -432,7 +432,7 @@ func TestEncodingBestEffort(t *testing.T) {
 				"a": []interface{}{strAddress, strAddress},
 			},
 			map[string]interface{}{
-				"a": []ethgo.Address{ethAddress, ethAddress},
+				"a": []core.Address{ethAddress, ethAddress},
 			},
 		},
 		{
@@ -672,7 +672,7 @@ func testTypeWithContract(t *testing.T, server *testutil.TestServer, typ *Type) 
 	if err != nil {
 		return err
 	}
-	txn := &ethgo.Transaction{
+	txn := &core.Transaction{
 		Input: binBuf,
 	}
 	receipt, err := server.SendTxn(txn)
@@ -693,7 +693,7 @@ func testTypeWithContract(t *testing.T, server *testutil.TestServer, typ *Type) 
 		return err
 	}
 
-	res, err := server.Call(&ethgo.CallMsg{
+	res, err := server.Call(&core.CallMsg{
 		To:   &receipt.ContractAddress,
 		Data: data,
 	})
@@ -710,11 +710,11 @@ func TestEncodingStruct(t *testing.T) {
 	typ := MustNewType("tuple(address aa, uint256 b)")
 
 	type Obj struct {
-		A ethgo.Address `abi:"aa"`
+		A core.Address `abi:"aa"`
 		B *big.Int
 	}
 	obj := Obj{
-		A: ethgo.Address{0x1},
+		A: core.Address{0x1},
 		B: big.NewInt(1),
 	}
 
@@ -736,11 +736,11 @@ func TestEncodingStruct_camcelCase(t *testing.T) {
 	typ := MustNewType("tuple(address aA, uint256 b)")
 
 	type Obj struct {
-		A ethgo.Address `abi:"aA"`
+		A core.Address `abi:"aA"`
 		B *big.Int
 	}
 	obj := Obj{
-		A: ethgo.Address{0x1},
+		A: core.Address{0x1},
 		B: big.NewInt(1),
 	}
 

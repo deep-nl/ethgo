@@ -6,24 +6,24 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"github.com/deep-nl/ethgo/core"
 
 	"github.com/btcsuite/btcd/btcec"
-	"github.com/deep-nl/ethgo"
 )
 
 // S256 is the secp256k1 elliptic curve
 var S256 = btcec.S256()
 
-var _ ethgo.Key = &Key{}
+var _ core.Key = &Key{}
 
 // Key is an implementation of the Key interface with a private key
 type Key struct {
 	priv *ecdsa.PrivateKey
 	pub  *ecdsa.PublicKey
-	addr ethgo.Address
+	addr core.Address
 }
 
-func (k *Key) Address() ethgo.Address {
+func (k *Key) Address() core.Address {
 	return k.addr
 }
 
@@ -32,7 +32,7 @@ func (k *Key) MarshallPrivateKey() ([]byte, error) {
 }
 
 func (k *Key) SignMsg(msg []byte) ([]byte, error) {
-	return k.Sign(ethgo.Keccak256(msg))
+	return k.Sign(core.Keccak256(msg))
 }
 
 func (k *Key) Sign(hash []byte) ([]byte, error) {
@@ -71,8 +71,8 @@ func KeyFromString(privKeyStr string) *Key {
 	return NewKey(privKeyEcdsa)
 }
 
-func pubKeyToAddress(pub *ecdsa.PublicKey) (addr ethgo.Address) {
-	b := ethgo.Keccak256(elliptic.Marshal(S256, pub.X, pub.Y)[1:])
+func pubKeyToAddress(pub *ecdsa.PublicKey) (addr core.Address) {
+	b := core.Keccak256(elliptic.Marshal(S256, pub.X, pub.Y)[1:])
 	copy(addr[:], b[12:])
 	return
 }
@@ -86,14 +86,14 @@ func GenerateKey() (*Key, error) {
 	return NewKey(priv), nil
 }
 
-func EcrecoverMsg(msg, signature []byte) (ethgo.Address, error) {
-	return Ecrecover(ethgo.Keccak256(msg), signature)
+func EcrecoverMsg(msg, signature []byte) (core.Address, error) {
+	return Ecrecover(core.Keccak256(msg), signature)
 }
 
-func Ecrecover(hash, signature []byte) (ethgo.Address, error) {
+func Ecrecover(hash, signature []byte) (core.Address, error) {
 	pub, err := RecoverPubkey(signature, hash)
 	if err != nil {
-		return ethgo.Address{}, err
+		return core.Address{}, err
 	}
 	return pubKeyToAddress(pub), nil
 }

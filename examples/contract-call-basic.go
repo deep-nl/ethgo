@@ -2,9 +2,9 @@ package examples
 
 import (
 	"fmt"
+	"github.com/deep-nl/ethgo/core"
 	"math/big"
 
-	"github.com/deep-nl/ethgo"
 	"github.com/deep-nl/ethgo/abi"
 	"github.com/deep-nl/ethgo/contract"
 	"github.com/deep-nl/ethgo/jsonrpc"
@@ -26,13 +26,13 @@ func contractCall() {
 	handleErr(err)
 
 	// Matic token
-	addr := ethgo.HexToAddress("0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0")
+	addr := core.HexToAddress("0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0")
 
 	client, err := jsonrpc.NewClient("https://mainnet.infura.io")
 	handleErr(err)
 
 	c := contract.NewContract(addr, abiContract, contract.WithJsonRPC(client.Eth()))
-	res, err := c.Call("totalSupply", ethgo.Latest)
+	res, err := c.Call("totalSupply", core.Latest)
 	handleErr(err)
 
 	fmt.Printf("TotalSupply: %s", res["totalSupply"].(*big.Int))

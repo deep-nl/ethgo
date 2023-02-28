@@ -2,11 +2,11 @@ package abi
 
 import (
 	"fmt"
+	"github.com/deep-nl/ethgo/core"
 	"math/big"
 	"reflect"
 	"testing"
 
-	"github.com/deep-nl/ethgo"
 	"github.com/deep-nl/ethgo/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -35,7 +35,7 @@ func TestTopicEncoding(t *testing.T) {
 		},
 		{
 			Type: "address",
-			Val:  ethgo.Address{0x1},
+			Val:  core.Address{0x1},
 		},
 	}
 

@@ -3,12 +3,11 @@ package testutil
 import (
 	"encoding/hex"
 	"fmt"
+	"github.com/deep-nl/ethgo/core"
 	"math/big"
 	"strconv"
 	"strings"
 	"sync"
-
-	"github.com/deep-nl/ethgo"
 )
 
 type mockCall int
@@ -23,9 +22,9 @@ const (
 type MockClient struct {
 	lock     sync.Mutex
 	num      uint64
-	blockNum map[uint64]ethgo.Hash
-	blocks   map[ethgo.Hash]*ethgo.Block
-	logs     map[ethgo.Hash][]*ethgo.Log
+	blockNum map[uint64]core.Hash
+	blocks   map[core.Hash]*core.Block
+	logs     map[core.Hash][]*core.Log
 	chainID  *big.Int
 }
 
@@ -40,7 +39,7 @@ func (d *MockClient) ChainID() (*big.Int, error) {
 	return d.chainID, nil
 }
 
-func (d *MockClient) GetLastBlocks(n uint64) (res []*ethgo.Block) {
+func (d *MockClient) GetLastBlocks(n uint64) (res []*core.Block) {
 	if d.num == 0 {
 		return
 	}
@@ -55,7 +54,7 @@ func (d *MockClient) GetLastBlocks(n uint64) (res []*ethgo.Block) {
 	return
 }
 
-func (d *MockClient) GetAllLogs() (res []*ethgo.Log) {
+func (d *MockClient) GetAllLogs() (res []*core.Log) {
 	if d.num == 0 {
 		return
 	}
@@ -71,7 +70,7 @@ func (d *MockClient) AddScenario(m MockList) {
 
 	// add the logs
 	for _, b := range m {
-		block := &ethgo.Block{
+		block := &core.Block{
 			Hash:   b.Hash(),
 			Number: uint64(b.num),
 		}
@@ -99,27 +98,27 @@ func (d *MockClient) AddScenario(m MockList) {
 	}
 }
 
-func (d *MockClient) AddLogs(logs []*ethgo.Log) {
+func (d *MockClient) AddLogs(logs []*core.Log) {
 	if d.logs == nil {
-		d.logs = map[ethgo.Hash][]*ethgo.Log{}
+		d.logs = map[core.Hash][]*core.Log{}
 	}
 	for _, log := range logs {
 		entry, ok := d.logs[log.BlockHash]
 		if ok {
 			entry = append(entry, log)
 		} else {
-			entry = []*ethgo.Log{log}
+			entry = []*core.Log{log}
 		}
 		d.logs[log.BlockHash] = entry
 	}
 }
 
-func (d *MockClient) addBlocks(bb ...*ethgo.Block) {
+func (d *MockClient) addBlocks(bb ...*core.Block) {
 	if d.blocks == nil {
-		d.blocks = map[ethgo.Hash]*ethgo.Block{}
+		d.blocks = map[core.Hash]*core.Block{}
 	}
 	if d.blockNum == nil {
-		d.blockNum = map[uint64]ethgo.Hash{}
+		d.blockNum = map[uint64]core.Hash{}
 	}
 	for _, b := range bb {
 		if b.Number > d.num {
@@ -137,7 +136,7 @@ func (d *MockClient) BlockNumber() (uint64, error) {
 	return d.num, nil
 }
 
-func (d *MockClient) GetBlockByHash(hash ethgo.Hash, full bool) (*ethgo.Block, error) {
+func (d *MockClient) GetBlockByHash(hash core.Hash, full bool) (*core.Block, error) {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 
@@ -148,7 +147,7 @@ func (d *MockClient) GetBlockByHash(hash ethgo.Hash, full bool) (*ethgo.Block, e
 	return b, nil
 }
 
-func (d *MockClient) blockByNumberLock(i uint64) (*ethgo.Block, error) {
+func (d *MockClient) blockByNumberLock(i uint64) (*core.Block, error) {
 	hash, ok := d.blockNum[i]
 	if !ok {
 		return nil, fmt.Errorf("number %d not found", i)
@@ -156,15 +155,15 @@ func (d *MockClient) blockByNumberLock(i uint64) (*ethgo.Block, error) {
 	return d.blocks[hash], nil
 }
 
-func (d *MockClient) GetBlockByNumber(i ethgo.BlockNumber, full bool) (*ethgo.Block, error) {
+func (d *MockClient) GetBlockByNumber(i core.BlockNumber, full bool) (*core.Block, error) {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 
 	if i < 0 {
 		switch i {
-		case ethgo.Latest:
+		case core.Latest:
 			if d.num == 0 {
-				return &ethgo.Block{Number: 0}, nil
+				return &core.Block{Number: 0}, nil
 			}
 			return d.blockByNumberLock(d.num)
 		default:
@@ -174,7 +173,7 @@ func (d *MockClient) GetBlockByNumber(i ethgo.BlockNumber, full bool) (*ethgo.Bl
 	return d.blockByNumberLock(uint64(i))
 }
 
-func (d *MockClient) GetLogs(filter *ethgo.LogFilter) ([]*ethgo.Log, error) {
+func (d *MockClient) GetLogs(filter *core.LogFilter) ([]*core.Log, error) {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 
@@ -190,7 +189,7 @@ func (d *MockClient) GetLogs(filter *ethgo.LogFilter) ([]*ethgo.Log, error) {
 		return nil, fmt.Errorf("out of bounds")
 	}
 
-	logs := []*ethgo.Log{}
+	logs := []*core.Log{}
 	for i := from; i <= to; i++ {
 		b, err := d.blockByNumberLock(i)
 		if err != nil {
@@ -235,9 +234,9 @@ func (m *MockBlock) Extra(data string) *MockBlock {
 	return m
 }
 
-func (m *MockBlock) GetLogs() (logs []*ethgo.Log) {
+func (m *MockBlock) GetLogs() (logs []*core.Log) {
 	for _, log := range m.logs {
-		logs = append(logs, &ethgo.Log{Data: mustDecodeHash(log.data), BlockNumber: uint64(m.num), BlockHash: m.Hash()})
+		logs = append(logs, &core.Log{Data: mustDecodeHash(log.data), BlockNumber: uint64(m.num), BlockHash: m.Hash()})
 	}
 	return
 }
@@ -262,7 +261,7 @@ func (m *MockBlock) Parent(i int) *MockBlock {
 	return m
 }
 
-func encodeHash(str string) (h ethgo.Hash) {
+func encodeHash(str string) (h core.Hash) {
 	tmp := ""
 	for i := 0; i < 64-len(str); i++ {
 		tmp += "0"
@@ -274,12 +273,12 @@ func encodeHash(str string) (h ethgo.Hash) {
 	return
 }
 
-func (m *MockBlock) Hash() ethgo.Hash {
+func (m *MockBlock) Hash() core.Hash {
 	return encodeHash(m.extra + m.hash)
 }
 
-func (m *MockBlock) Block() *ethgo.Block {
-	b := &ethgo.Block{
+func (m *MockBlock) Block() *core.Block {
+	b := &core.Block{
 		Hash:   m.Hash(),
 		Number: uint64(m.num),
 	}
@@ -303,15 +302,15 @@ func (m *MockList) Create(from, to int, callback func(b *MockBlock)) {
 	}
 }
 
-func (m *MockList) GetLogs() (res []*ethgo.Log) {
+func (m *MockList) GetLogs() (res []*core.Log) {
 	for _, log := range *m {
 		res = append(res, log.GetLogs()...)
 	}
 	return
 }
 
-func (m *MockList) ToBlocks() []*ethgo.Block {
-	e := []*ethgo.Block{}
+func (m *MockList) ToBlocks() []*core.Block {
+	e := []*core.Block{}
 	for _, i := range *m {
 		e = append(e, i.Block())
 	}

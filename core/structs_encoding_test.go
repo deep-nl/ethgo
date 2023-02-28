@@ -1,4 +1,4 @@
-package ethgo
+package core
 
 import (
 	"bytes"

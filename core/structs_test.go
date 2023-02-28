@@ -1,4 +1,4 @@
-package ethgo
+package core
 
 import (
 	_ "embed"
@@ -106,7 +106,7 @@ func TestLog_Copy(t *testing.T) {
 	}
 }
 
-//go:embed testsuite/receipts.json
+//go:embed ../testsuite/receipts.json
 var receiptsFixtures []byte
 
 func TestReceipt_Unmarshal(t *testing.T) {

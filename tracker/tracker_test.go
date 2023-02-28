@@ -3,6 +3,7 @@ package tracker
 import (
 	"context"
 	"fmt"
+	"github.com/deep-nl/ethgo/core"
 	"math/big"
 	"math/rand"
 	"reflect"
@@ -10,7 +11,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/deep-nl/ethgo"
 	"github.com/deep-nl/ethgo/abi"
 	"github.com/deep-nl/ethgo/blocktracker"
 	"github.com/deep-nl/ethgo/jsonrpc"
@@ -27,7 +27,7 @@ func testConfig() ConfigOption {
 	}
 }
 
-func testFilter(t *testing.T, provider Provider, filterConfig *FilterConfig) []*ethgo.Log {
+func testFilter(t *testing.T, provider Provider, filterConfig *FilterConfig) []*core.Log {
 	filterConfig.Async = true
 	tt, _ := NewTracker(provider, WithFilter(filterConfig))
 
@@ -126,14 +126,14 @@ func TestFilterIntegration(t *testing.T) {
 	}
 
 	// filter by address
-	logs := testFilter(t, client.Eth(), &FilterConfig{Address: []ethgo.Address{addr0}})
+	logs := testFilter(t, client.Eth(), &FilterConfig{Address: []core.Address{addr0}})
 	require.NotEmpty(t, logs)
 
 	// filter by value
 	typ, _ := abi.NewType("uint256")
 	topic, _ := abi.EncodeTopic(typ, 1)
 
-	logs = testFilter(t, client.Eth(), &FilterConfig{Topics: [][]*ethgo.Hash{nil, {&topic}}})
+	logs = testFilter(t, client.Eth(), &FilterConfig{Topics: [][]*core.Hash{nil, {&topic}}})
 	require.NotEmpty(t, logs)
 }
 
@@ -389,7 +389,7 @@ func testTrackerSyncerRandom(t *testing.T, n int, backlog uint64) {
 			}
 		}()
 
-		var added, removed []*ethgo.Log
+		var added, removed []*core.Log
 		for {
 			select {
 			case evnt := <-tt.EventCh:
@@ -720,7 +720,7 @@ type mockClientWithLimit struct {
 	testutil.MockClient
 }
 
-func (m *mockClientWithLimit) GetLogs(filter *ethgo.LogFilter) ([]*ethgo.Log, error) {
+func (m *mockClientWithLimit) GetLogs(filter *core.LogFilter) ([]*core.Log, error) {
 	if filter.BlockHash != nil {
 		return m.MockClient.GetLogs(filter)
 	}

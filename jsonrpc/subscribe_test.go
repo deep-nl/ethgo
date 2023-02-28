@@ -1,11 +1,11 @@
 package jsonrpc
 
 import (
+	"github.com/deep-nl/ethgo/core"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/deep-nl/ethgo"
 	"github.com/deep-nl/ethgo/testutil"
 	"github.com/stretchr/testify/assert"
 )
@@ -27,7 +27,7 @@ func TestSubscribeNewHead(t *testing.T) {
 		})
 		assert.NoError(t, err)
 
-		var lastBlock *ethgo.Block
+		var lastBlock *core.Block
 		recv := func(ok bool) {
 			select {
 			case buf := <-data:
@@ -35,7 +35,7 @@ func TestSubscribeNewHead(t *testing.T) {
 					t.Fatal("unexpected value")
 				}
 
-				var block ethgo.Block
+				var block core.Block
 				if err := block.UnmarshalJSON(buf); err != nil {
 					t.Fatal(err)
 				}

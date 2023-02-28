@@ -2,8 +2,8 @@ package examples
 
 import (
 	"fmt"
+	"github.com/deep-nl/ethgo/core"
 
-	"github.com/deep-nl/ethgo"
 	"github.com/deep-nl/ethgo/abi"
 	"github.com/deep-nl/ethgo/contract"
 	"github.com/deep-nl/ethgo/jsonrpc"
@@ -19,7 +19,7 @@ func contractTransaction() {
 	handleErr(err)
 
 	// Matic token
-	addr := ethgo.HexToAddress("0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0")
+	addr := core.HexToAddress("0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0")
 
 	client, err := jsonrpc.NewClient("https://mainnet.infura.io")
 	handleErr(err)
@@ -34,7 +34,7 @@ func contractTransaction() {
 	}
 	c := contract.NewContract(addr, abiContract, opts...)
 
-	txn, err := c.Txn("transferFrom", ethgo.Latest)
+	txn, err := c.Txn("transferFrom", core.Latest)
 	handleErr(err)
 
 	err = txn.Do()

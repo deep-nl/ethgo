@@ -2,12 +2,11 @@ package abi
 
 import (
 	"fmt"
+	"github.com/deep-nl/ethgo/core"
 	"math/big"
 	"math/rand"
 	"reflect"
 	"strings"
-
-	"github.com/deep-nl/ethgo"
 )
 
 func randomInt(min, max int) int {
@@ -113,7 +112,7 @@ func generateRandomType(t *Type) interface{} {
 		return false
 
 	case KindAddress:
-		buf := ethgo.Address{}
+		buf := core.Address{}
 		rand.Read(buf[:])
 		return buf
 

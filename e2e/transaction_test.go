@@ -1,10 +1,10 @@
 package e2e
 
 import (
+	"github.com/deep-nl/ethgo/core"
 	"math/big"
 	"testing"
 
-	"github.com/deep-nl/ethgo"
 	"github.com/deep-nl/ethgo/jsonrpc"
 	"github.com/deep-nl/ethgo/testutil"
 	"github.com/deep-nl/ethgo/wallet"
@@ -23,20 +23,20 @@ func TestSendSignedTransaction(t *testing.T) {
 
 	c, _ := jsonrpc.NewClient(s.HTTPAddr())
 
-	found, _ := c.Eth().GetBalance(key.Address(), ethgo.Latest)
+	found, _ := c.Eth().GetBalance(key.Address(), core.Latest)
 	assert.Equal(t, found, value)
 
 	chainID, err := c.Eth().ChainID()
 	assert.NoError(t, err)
 
 	// send a signed transaction
-	to := ethgo.Address{0x1}
+	to := core.Address{0x1}
 	transferVal := big.NewInt(1000)
 
 	gasPrice, err := c.Eth().GasPrice()
 	assert.NoError(t, err)
 
-	txn := &ethgo.Transaction{
+	txn := &core.Transaction{
 		To:       &to,
 		Value:    transferVal,
 		Nonce:    0,
@@ -44,7 +44,7 @@ func TestSendSignedTransaction(t *testing.T) {
 	}
 
 	{
-		msg := &ethgo.CallMsg{
+		msg := &core.CallMsg{
 			From:     key.Address(),
 			To:       &to,
 			Value:    transferVal,
@@ -74,7 +74,7 @@ func TestSendSignedTransaction(t *testing.T) {
 	_, err = s.WaitForReceipt(hash)
 	assert.NoError(t, err)
 
-	balance, err := c.Eth().GetBalance(to, ethgo.Latest)
+	balance, err := c.Eth().GetBalance(to, core.Latest)
 	assert.NoError(t, err)
 	assert.Equal(t, balance, transferVal)
 }

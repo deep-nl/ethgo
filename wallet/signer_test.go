@@ -1,21 +1,21 @@
 package wallet
 
 import (
+	"github.com/deep-nl/ethgo/core"
 	"math/big"
 	"testing"
 
-	"github.com/deep-nl/ethgo"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestSigner_EIP1155(t *testing.T) {
 	signer1 := NewEIP155Signer(1337)
 
-	addr0 := ethgo.Address{0x1}
+	addr0 := core.Address{0x1}
 	key, err := GenerateKey()
 	assert.NoError(t, err)
 
-	txn := &ethgo.Transaction{
+	txn := &core.Transaction{
 		To:       &addr0,
 		Value:    big.NewInt(10),
 		GasPrice: 0,

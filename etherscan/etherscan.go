@@ -3,10 +3,10 @@ package etherscan
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/deep-nl/ethgo/core"
 	"strconv"
 	"strings"
 
-	"github.com/deep-nl/ethgo"
 	"github.com/deep-nl/ethgo/jsonrpc/codec"
 	"github.com/valyala/fasthttp"
 )
@@ -19,19 +19,19 @@ type Etherscan struct {
 }
 
 // NewEtherscanFromNetwork creates a new client from the network id
-func NewEtherscanFromNetwork(n ethgo.Network, apiKey string) (*Etherscan, error) {
+func NewEtherscanFromNetwork(n core.Network, apiKey string) (*Etherscan, error) {
 	var url string
 	switch n {
-	case ethgo.Mainnet:
+	case core.Mainnet:
 		url = "https://api.etherscan.io"
 
-	case ethgo.Ropsten:
+	case core.Ropsten:
 		url = "https://ropsten.etherscan.io"
 
-	case ethgo.Rinkeby:
+	case core.Rinkeby:
 		url = "https://rinkeby.etherscan.io"
 
-	case ethgo.Goerli:
+	case core.Goerli:
 		url = "https://goerli.etherscan.io"
 
 	default:
@@ -114,8 +114,8 @@ func (e *Etherscan) BlockNumber() (uint64, error) {
 }
 
 // GetBlockByNumber returns information about a block by block number.
-func (e *Etherscan) GetBlockByNumber(i ethgo.BlockNumber, full bool) (*ethgo.Block, error) {
-	var b *ethgo.Block
+func (e *Etherscan) GetBlockByNumber(i core.BlockNumber, full bool) (*core.Block, error) {
+	var b *core.Block
 	params := map[string]string{
 		"tag":     i.String(),
 		"boolean": strconv.FormatBool(full),
@@ -134,7 +134,7 @@ type ContractCode struct {
 	ConstructorArguments string
 }
 
-func (e *Etherscan) GetContractCode(addr ethgo.Address) (*ContractCode, error) {
+func (e *Etherscan) GetContractCode(addr core.Address) (*ContractCode, error) {
 	var out []*ContractCode
 	err := e.Query("contract", "getsourcecode", &out, map[string]string{
 		"address": addr.String(),
@@ -162,17 +162,17 @@ func (e *Etherscan) GasPrice() (uint64, error) {
 	return uint64(num), nil
 }
 
-func (e *Etherscan) GetLogs(filter *ethgo.LogFilter) ([]*ethgo.Log, error) {
+func (e *Etherscan) GetLogs(filter *core.LogFilter) ([]*core.Log, error) {
 	if len(filter.Address) == 0 {
 		return nil, fmt.Errorf("an address to filter is required")
 	}
-	strBlockNumber := func(b ethgo.BlockNumber) string {
+	strBlockNumber := func(b core.BlockNumber) string {
 		switch b {
-		case ethgo.Latest:
+		case core.Latest:
 			return "latest"
-		case ethgo.Earliest:
+		case core.Earliest:
 			return "earliest"
-		case ethgo.Pending:
+		case core.Pending:
 			return "pending"
 		}
 		if b < 0 {
@@ -190,7 +190,7 @@ func (e *Etherscan) GetLogs(filter *ethgo.LogFilter) ([]*ethgo.Log, error) {
 	if filter.To != nil {
 		params["toBlock"] = strBlockNumber(*filter.To)
 	}
-	var out []*ethgo.Log
+	var out []*core.Log
 	if err := e.Query("logs", "getLogs", &out, params); err != nil {
 		return nil, err
 	}

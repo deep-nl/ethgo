@@ -2,12 +2,12 @@ package blocktracker
 
 import (
 	"context"
+	"github.com/deep-nl/ethgo/core"
 	"log"
 	"os"
 	"testing"
 	"time"
 
-	"github.com/deep-nl/ethgo"
 	"github.com/deep-nl/ethgo/jsonrpc"
 	"github.com/deep-nl/ethgo/testutil"
 	"github.com/stretchr/testify/assert"
@@ -17,8 +17,8 @@ func testListener(t *testing.T, server *testutil.Server, tracker BlockTrackerInt
 	ctx, cancelFn := context.WithCancel(context.Background())
 	defer cancelFn()
 
-	blocks := make(chan *ethgo.Block)
-	err := tracker.Track(ctx, func(block *ethgo.Block) error {
+	blocks := make(chan *core.Block)
+	err := tracker.Track(ctx, func(block *core.Block) error {
 		blocks <- block
 		return nil
 	})
@@ -26,7 +26,7 @@ func testListener(t *testing.T, server *testutil.Server, tracker BlockTrackerInt
 		t.Fatal(err)
 	}
 
-	var lastBlock *ethgo.Block
+	var lastBlock *core.Block
 	count := uint64(0)
 	recv := func() {
 		count++

@@ -5,8 +5,7 @@ import (
 	"crypto/aes"
 	"encoding/json"
 	"fmt"
-
-	"github.com/deep-nl/ethgo"
+	"github.com/deep-nl/ethgo/core"
 )
 
 // EncryptV3 encrypts data in v3 format
@@ -42,7 +41,7 @@ func EncryptV3(content []byte, password string, customScrypt ...int) ([]byte, er
 	}
 
 	// generate mac
-	mac := ethgo.Keccak256(kdf[16:32], cipherText)
+	mac := core.Keccak256(kdf[16:32], cipherText)
 
 	v3 := &v3Encoding{
 		Version: 3,
@@ -85,7 +84,7 @@ func DecryptV3(content []byte, password string) ([]byte, error) {
 	}
 
 	// validate mac
-	mac := ethgo.Keccak256(kdf[16:32], encoding.Crypto.CipherText)
+	mac := core.Keccak256(kdf[16:32], encoding.Crypto.CipherText)
 	if !bytes.Equal(mac, encoding.Crypto.Mac) {
 		return nil, fmt.Errorf("incorrect mac")
 	}

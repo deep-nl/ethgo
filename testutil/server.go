@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/deep-nl/ethgo/core"
 	"github.com/deep-nl/ethgo/wallet"
 	"math/big"
 	"math/rand"
@@ -16,8 +17,6 @@ import (
 	"testing"
 	"time"
 
-	//"github.com/ory/dockertest"
-	"github.com/deep-nl/ethgo"
 	"github.com/deep-nl/ethgo/compiler"
 )
 
@@ -61,7 +60,7 @@ type ServerConfigCallback func(c *TestServerConfig)
 // TestServer is a Geth test server
 type TestServer struct {
 	addr     string
-	accounts []ethgo.Address
+	accounts []core.Address
 	client   *ethClient
 }
 
@@ -82,7 +81,7 @@ func NewTestServer(t *testing.T, addrs ...string) *TestServer {
 	server.client = &ethClient{addr}
 	if strings.HasPrefix(addr, "ws") {
 		t.Log("websocket url")
-		server.accounts = append(server.accounts, ethgo.HexToAddress(FromAddr))
+		server.accounts = append(server.accounts, core.HexToAddress(FromAddr))
 		return server
 	}
 	if err := server.client.call("eth_accounts", &server.accounts); err != nil {
@@ -92,7 +91,7 @@ func NewTestServer(t *testing.T, addrs ...string) *TestServer {
 }
 
 // Account returns a specific account
-func (t *TestServer) Account(i int) ethgo.Address {
+func (t *TestServer) Account(i int) core.Address {
 	return t.accounts[i]
 }
 
@@ -113,8 +112,8 @@ func (t *TestServer) HTTPAddr() string {
 }
 
 // ProcessBlockWithReceipt ProcessBlock processes a new block
-func (t *TestServer) ProcessBlockWithReceipt() (*ethgo.Receipt, error) {
-	receipt, err := t.SendTxn(&ethgo.Transaction{
+func (t *TestServer) ProcessBlockWithReceipt() (*core.Receipt, error) {
+	receipt, err := t.SendTxn(&core.Transaction{
 		From:  t.accounts[0],
 		To:    &DummyAddr,
 		Value: big.NewInt(10),
@@ -123,8 +122,8 @@ func (t *TestServer) ProcessBlockWithReceipt() (*ethgo.Receipt, error) {
 }
 
 // ProcessRawTxWithReceipt ProcessBlock processes a new block via sendrawTransaction
-func (t *TestServer) ProcessRawTxWithReceipt() (*ethgo.Receipt, error) {
-	receipt, err := t.SendRawTxn(&ethgo.Transaction{
+func (t *TestServer) ProcessRawTxWithReceipt() (*core.Receipt, error) {
+	receipt, err := t.SendRawTxn(&core.Transaction{
 		From:  t.accounts[0],
 		To:    &DummyAddr,
 		Value: big.NewInt(1e18),
@@ -150,7 +149,7 @@ func (t *TestServer) ProcessBlockRaw() error {
 //}
 
 // Call sends a contract call
-func (t *TestServer) Call(msg *ethgo.CallMsg) (string, error) {
+func (t *TestServer) Call(msg *core.CallMsg) (string, error) {
 	if isEmptyAddr(msg.From) {
 		msg.From = t.Account(0)
 	}
@@ -161,12 +160,12 @@ func (t *TestServer) Call(msg *ethgo.CallMsg) (string, error) {
 	return resp, nil
 }
 
-func (t *TestServer) Fund(address ethgo.Address) (*ethgo.Receipt, error) {
+func (t *TestServer) Fund(address core.Address) (*core.Receipt, error) {
 	return t.Transfer(address, big.NewInt(1000000000000000000))
 }
 
-func (t *TestServer) Transfer(address ethgo.Address, value *big.Int) (*ethgo.Receipt, error) {
-	return t.SendTxn(&ethgo.Transaction{
+func (t *TestServer) Transfer(address core.Address, value *big.Int) (*core.Receipt, error) {
+	return t.SendTxn(&core.Transaction{
 		From:  t.accounts[0],
 		To:    &address,
 		Value: value,
@@ -174,15 +173,15 @@ func (t *TestServer) Transfer(address ethgo.Address, value *big.Int) (*ethgo.Rec
 }
 
 // TxnTo sends a transaction to a given method without any arguments
-func (t *TestServer) TxnTo(address ethgo.Address, method string) (*ethgo.Receipt, error) {
-	return t.SendTxn(&ethgo.Transaction{
+func (t *TestServer) TxnTo(address core.Address, method string) (*core.Receipt, error) {
+	return t.SendTxn(&core.Transaction{
 		To:    &address,
 		Input: MethodSig(method),
 	})
 }
 
 // SendTxn sends a transaction
-func (t *TestServer) SendTxn(txn *ethgo.Transaction) (*ethgo.Receipt, error) {
+func (t *TestServer) SendTxn(txn *core.Transaction) (*core.Receipt, error) {
 	if isEmptyAddr(txn.From) {
 		txn.From = t.Account(0)
 	}
@@ -193,7 +192,7 @@ func (t *TestServer) SendTxn(txn *ethgo.Transaction) (*ethgo.Receipt, error) {
 		txn.Gas = DefaultGasLimit
 	}
 
-	var hash ethgo.Hash
+	var hash core.Hash
 	if err := t.client.call("eth_sendTransaction", &hash, txn); err != nil {
 		return nil, err
 	}
@@ -201,7 +200,7 @@ func (t *TestServer) SendTxn(txn *ethgo.Transaction) (*ethgo.Receipt, error) {
 	return t.WaitForReceipt(hash)
 }
 
-func (t *TestServer) SendRawTxn(txn *ethgo.Transaction) (*ethgo.Receipt, error) {
+func (t *TestServer) SendRawTxn(txn *core.Transaction) (*core.Receipt, error) {
 	if isEmptyAddr(txn.From) {
 		txn.From = t.Account(0)
 	}
@@ -213,7 +212,7 @@ func (t *TestServer) SendRawTxn(txn *ethgo.Transaction) (*ethgo.Receipt, error) 
 	}
 	key := wallet.KeyFromString(FromKey)
 
-	signer := wallet.NewEIP155Signer(ethgo.Local)
+	signer := wallet.NewEIP155Signer(core.Local)
 	txn, err := signer.SignTx(txn, key)
 	if err != nil {
 		return nil, err
@@ -222,7 +221,7 @@ func (t *TestServer) SendRawTxn(txn *ethgo.Transaction) (*ethgo.Receipt, error) 
 	if err != nil {
 		return nil, err
 	}
-	var hash ethgo.Hash
+	var hash core.Hash
 	hexData := "0x" + hex.EncodeToString(data)
 	if err := t.client.call("eth_sendRawTransaction", &hash, hexData); err != nil {
 		return nil, err
@@ -232,8 +231,8 @@ func (t *TestServer) SendRawTxn(txn *ethgo.Transaction) (*ethgo.Receipt, error) 
 }
 
 // WaitForReceipt waits for the receipt
-func (t *TestServer) WaitForReceipt(hash ethgo.Hash) (*ethgo.Receipt, error) {
-	var receipt *ethgo.Receipt
+func (t *TestServer) WaitForReceipt(hash core.Hash) (*core.Receipt, error) {
+	var receipt *core.Receipt
 	var count uint64
 	// Todo 学习这种loop方法
 	for {
@@ -256,22 +255,22 @@ func (t *TestServer) WaitForReceipt(hash ethgo.Hash) (*ethgo.Receipt, error) {
 }
 
 // DeployContract deploys a contract with account 0 and returns the address
-func (t *TestServer) DeployContract(c *Contract) (*compiler.Artifact, ethgo.Address, error) {
+func (t *TestServer) DeployContract(c *Contract) (*compiler.Artifact, core.Address, error) {
 	// solcContract := compile(c.Print())
 	solcContract, err := c.Compile()
 	if err != nil {
-		return nil, ethgo.Address{}, err
+		return nil, core.Address{}, err
 	}
 	buf, err := hex.DecodeString(solcContract.Bin)
 	if err != nil {
-		return nil, ethgo.Address{}, err
+		return nil, core.Address{}, err
 	}
 
-	receipt, err := t.SendTxn(&ethgo.Transaction{
+	receipt, err := t.SendTxn(&core.Transaction{
 		Input: buf,
 	})
 	if err != nil {
-		return nil, ethgo.Address{}, err
+		return nil, core.Address{}, err
 	}
 	return solcContract, receipt.ContractAddress, nil
 }

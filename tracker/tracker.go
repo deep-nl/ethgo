@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/deep-nl/ethgo/core"
 	"io/ioutil"
 	"log"
 	"math/big"
@@ -15,7 +16,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/deep-nl/ethgo"
 	"github.com/deep-nl/ethgo/blocktracker"
 	"github.com/deep-nl/ethgo/etherscan"
 	"github.com/deep-nl/ethgo/jsonrpc/codec"
@@ -37,8 +37,8 @@ const (
 
 // FilterConfig is a tracker filter configuration
 type FilterConfig struct {
-	Address []ethgo.Address `json:"address"`
-	Topics  [][]*ethgo.Hash `json:"topics"`
+	Address []core.Address `json:"address"`
+	Topics  [][]*core.Hash `json:"topics"`
 	Start   uint64
 	Hash    string
 	Async   bool
@@ -69,8 +69,8 @@ func (f *FilterConfig) buildHash() {
 	f.Hash = hex.EncodeToString(h.Sum(nil))
 }
 
-func (f *FilterConfig) getFilterSearch() *ethgo.LogFilter {
-	filter := &ethgo.LogFilter{}
+func (f *FilterConfig) getFilterSearch() *core.LogFilter {
+	filter := &core.LogFilter{}
 	if len(f.Address) != 0 {
 		filter.Address = f.Address
 	}
@@ -134,9 +134,9 @@ func DefaultConfig() *Config {
 // Provider are the eth1x methods required by the tracker
 type Provider interface {
 	BlockNumber() (uint64, error)
-	GetBlockByHash(hash ethgo.Hash, full bool) (*ethgo.Block, error)
-	GetBlockByNumber(i ethgo.BlockNumber, full bool) (*ethgo.Block, error)
-	GetLogs(filter *ethgo.LogFilter) ([]*ethgo.Log, error)
+	GetBlockByHash(hash core.Hash, full bool) (*core.Block, error)
+	GetBlockByNumber(i core.BlockNumber, full bool) (*core.Block, error)
+	GetLogs(filter *core.LogFilter) ([]*core.Log, error)
 	ChainID() (*big.Int, error)
 }
 
@@ -225,7 +225,7 @@ func (t *Tracker) Entry() store.Entry {
 }
 
 // GetLastBlock returns the last block processed for this filter
-func (t *Tracker) GetLastBlock() (*ethgo.Block, error) {
+func (t *Tracker) GetLastBlock() (*core.Block, error) {
 	buf, err := t.store.Get(dbLastBlock + "_" + t.config.Filter.Hash)
 	if err != nil {
 		return nil, err
@@ -237,14 +237,14 @@ func (t *Tracker) GetLastBlock() (*ethgo.Block, error) {
 	if err != nil {
 		return nil, err
 	}
-	b := &ethgo.Block{}
+	b := &core.Block{}
 	if err := b.UnmarshalJSON(raw); err != nil {
 		return nil, err
 	}
 	return b, nil
 }
 
-func (t *Tracker) storeLastBlock(b *ethgo.Block) error {
+func (t *Tracker) storeLastBlock(b *core.Block) error {
 	if b.Difficulty == nil {
 		b.Difficulty = big.NewInt(0)
 	}
@@ -298,7 +298,7 @@ func (t *Tracker) WaitDuration(dur time.Duration) error {
 	return nil
 }
 
-func (t *Tracker) findAncestor(block, pivot *ethgo.Block) (uint64, error) {
+func (t *Tracker) findAncestor(block, pivot *core.Block) (uint64, error) {
 	// block is part of a fork that is not the current head, find a common ancestor
 	// both block and pivot are at the same height
 	var err error
@@ -323,7 +323,7 @@ func (t *Tracker) findAncestor(block, pivot *ethgo.Block) (uint64, error) {
 	return 0, fmt.Errorf("the reorg is bigger than maxBlockBacklog %d", t.blockTracker.MaxBlockBacklog())
 }
 
-func (t *Tracker) emitLogs(typ EventType, logs []*ethgo.Log) {
+func (t *Tracker) emitLogs(typ EventType, logs []*core.Log) {
 	evnt := &Event{}
 	if typ == EventAdd {
 		evnt.Added = logs
@@ -383,7 +383,7 @@ START:
 	t.emitLogs(EventAdd, logs)
 
 	// update the last block entry
-	block, err := t.provider.GetBlockByNumber(ethgo.BlockNumber(dst), false)
+	block, err := t.provider.GetBlockByNumber(core.BlockNumber(dst), false)
 	if err != nil {
 		return err
 	}
@@ -453,10 +453,10 @@ func (t *Tracker) preSyncCheckImpl() error {
 	return nil
 }
 
-func (t *Tracker) fastTrack(filterConfig *FilterConfig) (*ethgo.Block, error) {
+func (t *Tracker) fastTrack(filterConfig *FilterConfig) (*core.Block, error) {
 	// Try to use first the user provided block if any
 	if filterConfig.Start != 0 {
-		bb, err := t.provider.GetBlockByNumber(ethgo.BlockNumber(filterConfig.Start), false)
+		bb, err := t.provider.GetBlockByNumber(core.BlockNumber(filterConfig.Start), false)
 		if err != nil {
 			return nil, err
 		}
@@ -475,13 +475,13 @@ func (t *Tracker) fastTrack(filterConfig *FilterConfig) (*ethgo.Block, error) {
 		}
 
 		// get the etherscan instance for this chainID
-		e, err := etherscan.NewEtherscanFromNetwork(ethgo.Network(chainID.Uint64()), t.config.EtherscanAPIKey)
+		e, err := etherscan.NewEtherscanFromNetwork(core.Network(chainID.Uint64()), t.config.EtherscanAPIKey)
 		if err != nil {
 			// there is no etherscan api for this specific chainid
 			return nil, nil
 		}
 
-		getAddress := func(addr ethgo.Address) (uint64, error) {
+		getAddress := func(addr core.Address) (uint64, error) {
 			params := map[string]string{
 				"address":   addr.String(),
 				"fromBlock": "0",
@@ -518,7 +518,7 @@ func (t *Tracker) fastTrack(filterConfig *FilterConfig) (*ethgo.Block, error) {
 			}
 		}
 
-		bb, err := t.provider.GetBlockByNumber(ethgo.BlockNumber(minBlock-1), false)
+		bb, err := t.provider.GetBlockByNumber(core.BlockNumber(minBlock-1), false)
 		if err != nil {
 			return nil, err
 		}
@@ -650,7 +650,7 @@ func (t *Tracker) syncImpl(ctx context.Context) error {
 			return fmt.Errorf("store is more advanced than the chain")
 		}
 
-		pivot, err := t.provider.GetBlockByNumber(ethgo.BlockNumber(last.Number), false)
+		pivot, err := t.provider.GetBlockByNumber(core.BlockNumber(last.Number), false)
 		if err != nil {
 			return err
 		}
@@ -674,7 +674,7 @@ func (t *Tracker) syncImpl(ctx context.Context) error {
 			}
 			t.emitLogs(EventDel, logs)
 
-			last, err = t.provider.GetBlockByNumber(ethgo.BlockNumber(ancestor), false)
+			last, err = t.provider.GetBlockByNumber(core.BlockNumber(ancestor), false)
 			if err != nil {
 				return err
 			}
@@ -729,7 +729,7 @@ func (t *Tracker) syncImpl(ctx context.Context) error {
 	return nil
 }
 
-func (t *Tracker) removeLogs(number uint64, hash *ethgo.Hash) ([]*ethgo.Log, error) {
+func (t *Tracker) removeLogs(number uint64, hash *core.Hash) ([]*core.Log, error) {
 	index, err := t.entry.LastIndex()
 	if err != nil {
 		return nil, err
@@ -738,11 +738,11 @@ func (t *Tracker) removeLogs(number uint64, hash *ethgo.Hash) ([]*ethgo.Log, err
 		return nil, nil
 	}
 
-	var remove []*ethgo.Log
+	var remove []*core.Log
 	for {
 		elemIndex := index - 1
 
-		var log ethgo.Log
+		var log core.Log
 		if err := t.entry.GetLog(elemIndex, &log); err != nil {
 			return nil, err
 		}
@@ -768,7 +768,7 @@ func (t *Tracker) removeLogs(number uint64, hash *ethgo.Hash) ([]*ethgo.Log, err
 	return remove, nil
 }
 
-func revertLogs(in []*ethgo.Log) (out []*ethgo.Log) {
+func revertLogs(in []*core.Log) (out []*core.Log) {
 	for i := len(in) - 1; i >= 0; i-- {
 		out = append(out, in[i])
 	}
@@ -798,7 +798,7 @@ func (t *Tracker) handleBlockEvnt(blockEvnt *blocktracker.BlockEvent) error {
 	return nil
 }
 
-func (t *Tracker) doFilter(added []*ethgo.Block, removed []*ethgo.Block) (*Event, error) {
+func (t *Tracker) doFilter(added []*core.Block, removed []*core.Block) (*Event, error) {
 	evnt := &Event{}
 	if len(removed) != 0 {
 		pivot := removed[0]
@@ -815,7 +815,7 @@ func (t *Tracker) doFilter(added []*ethgo.Block, removed []*ethgo.Block) (*Event
 		query.BlockHash = &block.Hash
 
 		// We check the hash, we need to do a retry to let unsynced nodes get the block
-		var logs []*ethgo.Log
+		var logs []*core.Log
 		var err error
 
 		for i := 0; i < 5; i++ {
@@ -856,15 +856,15 @@ const (
 // Event is an event emitted when a new log is included
 type Event struct {
 	Type    EventType
-	Added   []*ethgo.Log
-	Removed []*ethgo.Log
+	Added   []*core.Log
+	Removed []*core.Log
 }
 
 // BlockEvent is an event emitted when a new block is included
 type BlockEvent struct {
 	Type    EventType
-	Added   []*ethgo.Block
-	Removed []*ethgo.Block
+	Added   []*core.Block
+	Removed []*core.Block
 }
 
 func min(i, j uint64) uint64 {

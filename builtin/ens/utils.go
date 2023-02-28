@@ -1,14 +1,14 @@
 package ens
 
 import (
+	"github.com/deep-nl/ethgo/core"
 	"strings"
 
-	"github.com/deep-nl/ethgo"
 	"golang.org/x/crypto/sha3"
 )
 
 // NameHash returns the hash of an ENS name
-func NameHash(str string) (node ethgo.Hash) {
+func NameHash(str string) (node core.Hash) {
 	if str == "" {
 		return
 	}

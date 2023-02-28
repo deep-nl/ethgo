@@ -2,9 +2,9 @@ package testcases
 
 import (
 	"encoding/hex"
+	"github.com/deep-nl/ethgo/core"
 	"testing"
 
-	"github.com/deep-nl/ethgo"
 	"github.com/deep-nl/ethgo/abi"
 	"github.com/deep-nl/ethgo/testutil"
 	"github.com/stretchr/testify/assert"
@@ -34,11 +34,11 @@ func TestContract_Interface(t *testing.T) {
 	server := testutil.NewTestServer(t)
 
 	var calls []struct {
-		Name      string         `json:"name"`
-		Interface string         `json:"interface"`
-		Bytecode  ethgo.ArgBytes `json:"bytecode"`
-		Result    ethgo.ArgBytes `json:"result"`
-		Values    string         `json:"values"`
+		Name      string        `json:"name"`
+		Interface string        `json:"interface"`
+		Bytecode  core.ArgBytes `json:"bytecode"`
+		Result    core.ArgBytes `json:"result"`
+		Values    string        `json:"values"`
 	}
 	ReadTestCase(t, "contract-interface", &calls)
 
@@ -48,12 +48,12 @@ func TestContract_Interface(t *testing.T) {
 
 		method := a.GetMethod("test")
 
-		receipt, err := server.SendTxn(&ethgo.Transaction{
+		receipt, err := server.SendTxn(&core.Transaction{
 			Input: c.Bytecode.Bytes(),
 		})
 		assert.NoError(t, err)
 
-		outputRaw, err := server.Call(&ethgo.CallMsg{
+		outputRaw, err := server.Call(&core.CallMsg{
 			To:   &receipt.ContractAddress,
 			Data: method.ID(),
 		})

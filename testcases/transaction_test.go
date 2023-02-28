@@ -1,15 +1,15 @@
 package testcases
 
 import (
+	"github.com/deep-nl/ethgo/core"
 	"math/big"
 	"testing"
 
-	"github.com/deep-nl/ethgo"
 	"github.com/deep-nl/ethgo/wallet"
 	"github.com/stretchr/testify/assert"
 )
 
-func getUint64FromBigInt(b *ethgo.ArgBig) (uint64, bool) {
+func getUint64FromBigInt(b *core.ArgBig) (uint64, bool) {
 	g := (*big.Int)(b)
 	if !g.IsUint64() {
 		return 0, false
@@ -19,17 +19,17 @@ func getUint64FromBigInt(b *ethgo.ArgBig) (uint64, bool) {
 
 func TestTransactions(t *testing.T) {
 	var transactions []struct {
-		Name              string         `json:"name"`
-		AccountAddress    ethgo.Address  `json:"accountAddress"`
-		PrivateKey        ethgo.ArgBytes `json:"privateKey"`
-		SignedTransaction ethgo.ArgBytes `json:"signedTransactionChainId5"`
+		Name              string        `json:"name"`
+		AccountAddress    core.Address  `json:"accountAddress"`
+		PrivateKey        core.ArgBytes `json:"privateKey"`
+		SignedTransaction core.ArgBytes `json:"signedTransactionChainId5"`
 
-		Data     *ethgo.ArgBytes  `json:"data,omitempty"`
-		Value    *ethgo.ArgBig    `json:"value,omitempty"`
-		To       *ethgo.Address   `json:"to,omitempty"`
-		GasLimit *ethgo.ArgBig    `json:"gasLimit,omitempty"`
-		Nonce    *ethgo.ArgUint64 `json:"nonce,omitempty"`
-		GasPrice *ethgo.ArgBig    `json:"gasPrice,omitempty"`
+		Data     *core.ArgBytes  `json:"data,omitempty"`
+		Value    *core.ArgBig    `json:"value,omitempty"`
+		To       *core.Address   `json:"to,omitempty"`
+		GasLimit *core.ArgBig    `json:"gasLimit,omitempty"`
+		Nonce    *core.ArgUint64 `json:"nonce,omitempty"`
+		GasPrice *core.ArgBig    `json:"gasPrice,omitempty"`
 	}
 	ReadTestCase(t, "transactions", &transactions)
 
@@ -38,7 +38,7 @@ func TestTransactions(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, key.Address(), c.AccountAddress)
 
-		txn := &ethgo.Transaction{
+		txn := &core.Transaction{
 			ChainID: big.NewInt(5),
 		}
 		if c.Data != nil {
@@ -80,23 +80,23 @@ func TestTransactions(t *testing.T) {
 
 func TestTypedTransactions(t *testing.T) {
 	var transactions []struct {
-		Name           string         `json:"name"`
-		AccountAddress ethgo.Address  `json:"address"`
-		Key            ethgo.ArgBytes `json:"key"`
-		Signed         ethgo.ArgBytes `json:"signed"`
+		Name           string        `json:"name"`
+		AccountAddress core.Address  `json:"address"`
+		Key            core.ArgBytes `json:"key"`
+		Signed         core.ArgBytes `json:"signed"`
 
 		Tx struct {
-			Type                 ethgo.TransactionType
-			Data                 *ethgo.ArgBytes  `json:"data,omitempty"`
-			GasLimit             *ethgo.ArgBig    `json:"gasLimit,omitempty"`
-			MaxPriorityFeePerGas *ethgo.ArgBig    `json:"maxPriorityFeePerGas,omitempty"`
-			MaxFeePerGas         *ethgo.ArgBig    `json:"maxFeePerGas,omitempty"`
-			Nonce                uint64           `json:"nonce,omitempty"`
-			To                   *ethgo.Address   `json:"to,omitempty"`
-			Value                *ethgo.ArgBig    `json:"value,omitempty"`
-			GasPrice             *ethgo.ArgBig    `json:"gasPrice,omitempty"`
-			ChainID              uint64           `json:"chainId,omitempty"`
-			AccessList           ethgo.AccessList `json:"accessList,omitempty"`
+			Type                 core.TransactionType
+			Data                 *core.ArgBytes  `json:"data,omitempty"`
+			GasLimit             *core.ArgBig    `json:"gasLimit,omitempty"`
+			MaxPriorityFeePerGas *core.ArgBig    `json:"maxPriorityFeePerGas,omitempty"`
+			MaxFeePerGas         *core.ArgBig    `json:"maxFeePerGas,omitempty"`
+			Nonce                uint64          `json:"nonce,omitempty"`
+			To                   *core.Address   `json:"to,omitempty"`
+			Value                *core.ArgBig    `json:"value,omitempty"`
+			GasPrice             *core.ArgBig    `json:"gasPrice,omitempty"`
+			ChainID              uint64          `json:"chainId,omitempty"`
+			AccessList           core.AccessList `json:"accessList,omitempty"`
 		}
 	}
 	ReadTestCase(t, "typed-transactions", &transactions)
@@ -108,7 +108,7 @@ func TestTypedTransactions(t *testing.T) {
 
 		chainID := big.NewInt(int64(c.Tx.ChainID))
 
-		txn := &ethgo.Transaction{
+		txn := &core.Transaction{
 			ChainID:              chainID,
 			Type:                 c.Tx.Type,
 			MaxPriorityFeePerGas: (*big.Int)(c.Tx.MaxPriorityFeePerGas),

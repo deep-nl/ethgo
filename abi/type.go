@@ -2,13 +2,12 @@ package abi
 
 import (
 	"fmt"
+	"github.com/deep-nl/ethgo/core"
 	"math/big"
 	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
-
-	"github.com/deep-nl/ethgo"
 )
 
 // batch of predefined reflect types
@@ -22,7 +21,7 @@ var (
 	int16T        = reflect.TypeOf(int16(0))
 	int32T        = reflect.TypeOf(int32(0))
 	int64T        = reflect.TypeOf(int64(0))
-	addressT      = reflect.TypeOf(ethgo.Address{})
+	addressT      = reflect.TypeOf(core.Address{})
 	stringT       = reflect.TypeOf("")
 	dynamicBytesT = reflect.SliceOf(reflect.TypeOf(byte(0)))
 	functionT     = reflect.ArrayOf(24, reflect.TypeOf(byte(0)))
@@ -132,7 +131,7 @@ func NewTupleTypeFromArgs(inputs []*ArgumentStr) (*Type, error) {
 }
 
 // ParseLog parses a log using this type
-func (t *Type) ParseLog(log *ethgo.Log) (map[string]interface{}, error) {
+func (t *Type) ParseLog(log *core.Log) (map[string]interface{}, error) {
 	return ParseLog(t, log)
 }
 

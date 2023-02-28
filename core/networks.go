@@ -1,4 +1,4 @@
-package ethgo
+package core
 
 // Network is a chain id
 type Network uint64

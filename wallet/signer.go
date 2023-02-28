@@ -1,18 +1,18 @@
 package wallet
 
 import (
+	"github.com/deep-nl/ethgo/core"
 	"math/big"
 
-	"github.com/deep-nl/ethgo"
 	"github.com/umbracle/fastrlp"
 )
 
 type Signer interface {
 	// RecoverSender returns the sender to the transaction
-	RecoverSender(tx *ethgo.Transaction) (ethgo.Address, error)
+	RecoverSender(tx *core.Transaction) (core.Address, error)
 
 	// SignTx signs a transaction
-	SignTx(tx *ethgo.Transaction, key ethgo.Key) (*ethgo.Transaction, error)
+	SignTx(tx *core.Transaction, key core.Key) (*core.Transaction, error)
 }
 
 type EIP1155Signer struct {
@@ -23,7 +23,7 @@ func NewEIP155Signer(chainID uint64) *EIP1155Signer {
 	return &EIP1155Signer{chainID: chainID}
 }
 
-func (e *EIP1155Signer) RecoverSender(tx *ethgo.Transaction) (ethgo.Address, error) {
+func (e *EIP1155Signer) RecoverSender(tx *core.Transaction) (core.Address, error) {
 	v := new(big.Int).SetBytes(tx.V).Uint64()
 	v -= e.chainID * 2
 	v -= 8
@@ -31,11 +31,11 @@ func (e *EIP1155Signer) RecoverSender(tx *ethgo.Transaction) (ethgo.Address, err
 
 	sig, err := encodeSignature(tx.R, tx.S, byte(v))
 	if err != nil {
-		return ethgo.Address{}, err
+		return core.Address{}, err
 	}
 	addr, err := Ecrecover(signHash(tx, e.chainID), sig)
 	if err != nil {
-		return ethgo.Address{}, err
+		return core.Address{}, err
 	}
 	return addr, nil
 }
@@ -50,7 +50,7 @@ func trimBytesZeros(b []byte) []byte {
 	return b[i:]
 }
 
-func (e *EIP1155Signer) SignTx(tx *ethgo.Transaction, key ethgo.Key) (*ethgo.Transaction, error) {
+func (e *EIP1155Signer) SignTx(tx *core.Transaction, key core.Key) (*core.Transaction, error) {
 	hash := signHash(tx, e.chainID)
 
 	sig, err := key.Sign(hash)
@@ -69,7 +69,7 @@ func (e *EIP1155Signer) SignTx(tx *ethgo.Transaction, key ethgo.Key) (*ethgo.Tra
 	return tx, nil
 }
 
-func signHash(tx *ethgo.Transaction, chainID uint64) []byte {
+func signHash(tx *core.Transaction, chainID uint64) []byte {
 	a := fastrlp.DefaultArenaPool.Get()
 
 	v := a.NewArray()
@@ -81,7 +81,7 @@ func signHash(tx *ethgo.Transaction, chainID uint64) []byte {
 
 	v.Set(a.NewUint(tx.Nonce))
 
-	if tx.Type == ethgo.TransactionDynamicFee {
+	if tx.Type == core.TransactionDynamicFee {
 		// dynamic fee uses
 		v.Set(a.NewBigInt(tx.MaxPriorityFeePerGas))
 		v.Set(a.NewBigInt(tx.MaxFeePerGas))
@@ -118,13 +118,13 @@ func signHash(tx *ethgo.Transaction, chainID uint64) []byte {
 	dst := v.MarshalTo(nil)
 
 	// append the tx type byte
-	if tx.Type == ethgo.TransactionAccessList {
+	if tx.Type == core.TransactionAccessList {
 		dst = append([]byte{0x1}, dst...)
-	} else if tx.Type == ethgo.TransactionDynamicFee {
+	} else if tx.Type == core.TransactionDynamicFee {
 		dst = append([]byte{0x2}, dst...)
 	}
 
-	hash := ethgo.Keccak256(dst)
+	hash := core.Keccak256(dst)
 	fastrlp.DefaultArenaPool.Put(a)
 	return hash
 }

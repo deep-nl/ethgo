@@ -2,7 +2,7 @@ package testutil
 
 import (
 	"fmt"
-	"github.com/deep-nl/ethgo"
+	"github.com/deep-nl/ethgo/core"
 	"testing"
 )
 
@@ -19,7 +19,7 @@ import (
 
 func TestTestServer_Account(t *testing.T) {
 	server := &TestServer{}
-	tx := &ethgo.Transaction{}
+	tx := &core.Transaction{}
 
 	fmt.Println(server.HTTPAddr() == "")
 	fmt.Println(server.WSAddr())

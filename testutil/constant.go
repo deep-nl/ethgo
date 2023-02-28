@@ -1,6 +1,8 @@
 package testutil
 
-import "github.com/deep-nl/ethgo"
+import (
+	"github.com/deep-nl/ethgo/core"
+)
 
 var (
 	DefaultGasPrice = uint64(1879048192) // 0x70000000
@@ -8,7 +10,7 @@ var (
 )
 
 var (
-	DummyAddr = ethgo.HexToAddress("0x015f68893a39b3ba0681584387670ff8b00f4db2")
+	DummyAddr = core.HexToAddress("0x015f68893a39b3ba0681584387670ff8b00f4db2")
 )
 
 const (

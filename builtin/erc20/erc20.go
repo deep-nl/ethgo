@@ -5,9 +5,9 @@ package erc20
 
 import (
 	"fmt"
+	"github.com/deep-nl/ethgo/core"
 	"math/big"
 
-	"github.com/deep-nl/ethgo"
 	"github.com/deep-nl/ethgo/contract"
 	"github.com/deep-nl/ethgo/jsonrpc"
 )
@@ -23,18 +23,18 @@ type ERC20 struct {
 }
 
 // NewERC20 creates a new instance of the contract at a specific address
-func NewERC20(addr ethgo.Address, opts ...contract.ContractOption) *ERC20 {
+func NewERC20(addr core.Address, opts ...contract.ContractOption) *ERC20 {
 	return &ERC20{c: contract.NewContract(addr, abiERC20, opts...)}
 }
 
 // calls
 
 // Allowance calls the allowance method in the solidity contract
-func (e *ERC20) Allowance(owner ethgo.Address, spender ethgo.Address, block ...ethgo.BlockNumber) (retval0 *big.Int, err error) {
+func (e *ERC20) Allowance(owner core.Address, spender core.Address, block ...core.BlockNumber) (retval0 *big.Int, err error) {
 	var out map[string]interface{}
 	var ok bool
 
-	out, err = e.c.Call("allowance", ethgo.EncodeBlock(block...), owner, spender)
+	out, err = e.c.Call("allowance", core.EncodeBlock(block...), owner, spender)
 	if err != nil {
 		return
 	}
@@ -50,11 +50,11 @@ func (e *ERC20) Allowance(owner ethgo.Address, spender ethgo.Address, block ...e
 }
 
 // BalanceOf calls the balanceOf method in the solidity contract
-func (e *ERC20) BalanceOf(owner ethgo.Address, block ...ethgo.BlockNumber) (retval0 *big.Int, err error) {
+func (e *ERC20) BalanceOf(owner core.Address, block ...core.BlockNumber) (retval0 *big.Int, err error) {
 	var out map[string]interface{}
 	var ok bool
 
-	out, err = e.c.Call("balanceOf", ethgo.EncodeBlock(block...), owner)
+	out, err = e.c.Call("balanceOf", core.EncodeBlock(block...), owner)
 	if err != nil {
 		return
 	}
@@ -70,11 +70,11 @@ func (e *ERC20) BalanceOf(owner ethgo.Address, block ...ethgo.BlockNumber) (retv
 }
 
 // Decimals calls the decimals method in the solidity contract
-func (e *ERC20) Decimals(block ...ethgo.BlockNumber) (retval0 uint8, err error) {
+func (e *ERC20) Decimals(block ...core.BlockNumber) (retval0 uint8, err error) {
 	var out map[string]interface{}
 	var ok bool
 
-	out, err = e.c.Call("decimals", ethgo.EncodeBlock(block...))
+	out, err = e.c.Call("decimals", core.EncodeBlock(block...))
 	if err != nil {
 		return
 	}
@@ -90,11 +90,11 @@ func (e *ERC20) Decimals(block ...ethgo.BlockNumber) (retval0 uint8, err error) 
 }
 
 // Name calls the name method in the solidity contract
-func (e *ERC20) Name(block ...ethgo.BlockNumber) (retval0 string, err error) {
+func (e *ERC20) Name(block ...core.BlockNumber) (retval0 string, err error) {
 	var out map[string]interface{}
 	var ok bool
 
-	out, err = e.c.Call("name", ethgo.EncodeBlock(block...))
+	out, err = e.c.Call("name", core.EncodeBlock(block...))
 	if err != nil {
 		return
 	}
@@ -110,11 +110,11 @@ func (e *ERC20) Name(block ...ethgo.BlockNumber) (retval0 string, err error) {
 }
 
 // Symbol calls the symbol method in the solidity contract
-func (e *ERC20) Symbol(block ...ethgo.BlockNumber) (retval0 string, err error) {
+func (e *ERC20) Symbol(block ...core.BlockNumber) (retval0 string, err error) {
 	var out map[string]interface{}
 	var ok bool
 
-	out, err = e.c.Call("symbol", ethgo.EncodeBlock(block...))
+	out, err = e.c.Call("symbol", core.EncodeBlock(block...))
 	if err != nil {
 		return
 	}
@@ -130,11 +130,11 @@ func (e *ERC20) Symbol(block ...ethgo.BlockNumber) (retval0 string, err error) {
 }
 
 // TotalSupply calls the totalSupply method in the solidity contract
-func (e *ERC20) TotalSupply(block ...ethgo.BlockNumber) (retval0 *big.Int, err error) {
+func (e *ERC20) TotalSupply(block ...core.BlockNumber) (retval0 *big.Int, err error) {
 	var out map[string]interface{}
 	var ok bool
 
-	out, err = e.c.Call("totalSupply", ethgo.EncodeBlock(block...))
+	out, err = e.c.Call("totalSupply", core.EncodeBlock(block...))
 	if err != nil {
 		return
 	}
@@ -152,26 +152,26 @@ func (e *ERC20) TotalSupply(block ...ethgo.BlockNumber) (retval0 *big.Int, err e
 // txns
 
 // Approve sends a approve transaction in the solidity contract
-func (e *ERC20) Approve(spender ethgo.Address, value *big.Int) (contract.Txn, error) {
+func (e *ERC20) Approve(spender core.Address, value *big.Int) (contract.Txn, error) {
 	return e.c.Txn("approve", spender, value)
 }
 
 // Transfer sends a transfer transaction in the solidity contract
-func (e *ERC20) Transfer(to ethgo.Address, value *big.Int) (contract.Txn, error) {
+func (e *ERC20) Transfer(to core.Address, value *big.Int) (contract.Txn, error) {
 	return e.c.Txn("transfer", to, value)
 }
 
 // TransferFrom sends a transferFrom transaction in the solidity contract
-func (e *ERC20) TransferFrom(from ethgo.Address, to ethgo.Address, value *big.Int) (contract.Txn, error) {
+func (e *ERC20) TransferFrom(from core.Address, to core.Address, value *big.Int) (contract.Txn, error) {
 	return e.c.Txn("transferFrom", from, to, value)
 }
 
 // events
 
-func (e *ERC20) ApprovalEventSig() ethgo.Hash {
+func (e *ERC20) ApprovalEventSig() core.Hash {
 	return e.c.GetABI().Events["Approval"].ID()
 }
 
-func (e *ERC20) TransferEventSig() ethgo.Hash {
+func (e *ERC20) TransferEventSig() core.Hash {
 	return e.c.GetABI().Events["Transfer"].ID()
 }

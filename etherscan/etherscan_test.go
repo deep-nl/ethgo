@@ -1,10 +1,10 @@
 package etherscan
 
 import (
+	"github.com/deep-nl/ethgo/core"
 	"os"
 	"testing"
 
-	"github.com/deep-nl/ethgo"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -34,7 +34,7 @@ func TestContract(t *testing.T) {
 	e := testEtherscanMainnet(t)
 
 	// uniswap v2. router
-	code, err := e.GetContractCode(ethgo.HexToAddress("0x7a250d5630b4cf539739df2c5dacb4c659f2488d"))
+	code, err := e.GetContractCode(core.HexToAddress("0x7a250d5630b4cf539739df2c5dacb4c659f2488d"))
 	assert.NoError(t, err)
 	assert.Equal(t, code.Runs, "999999")
 }
@@ -42,14 +42,14 @@ func TestContract(t *testing.T) {
 func TestGetLogs(t *testing.T) {
 	e := testEtherscanMainnet(t)
 
-	from := ethgo.BlockNumber(379224)
-	to := ethgo.Latest
+	from := core.BlockNumber(379224)
+	to := core.Latest
 
-	filter := &ethgo.LogFilter{
+	filter := &core.LogFilter{
 		From: &from,
 		To:   &to,
-		Address: []ethgo.Address{
-			ethgo.HexToAddress("0x33990122638b9132ca29c723bdf037f1a891a70c"),
+		Address: []core.Address{
+			core.HexToAddress("0x33990122638b9132ca29c723bdf037f1a891a70c"),
 		},
 	}
 	logs, err := e.GetLogs(filter)

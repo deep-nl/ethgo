@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/deep-nl/ethgo/core"
 	"hash"
 	"io"
 	"regexp"
 	"strings"
 	"sync"
 
-	"github.com/deep-nl/ethgo"
 	"golang.org/x/crypto/sha3"
 )
 
@@ -304,7 +304,7 @@ func (e *Event) Sig() string {
 }
 
 // ID returns the id of the event used during logs
-func (e *Event) ID() (res ethgo.Hash) {
+func (e *Event) ID() (res core.Hash) {
 	k := acquireKeccak()
 	k.Write([]byte(e.Sig()))
 	dst := k.Sum(nil)
@@ -376,7 +376,7 @@ func NewEventFromType(name string, typ *Type) *Event {
 }
 
 // Match checks wheter the log is from this event
-func (e *Event) Match(log *ethgo.Log) bool {
+func (e *Event) Match(log *core.Log) bool {
 	if len(log.Topics) == 0 {
 		return false
 	}
@@ -387,7 +387,7 @@ func (e *Event) Match(log *ethgo.Log) bool {
 }
 
 // ParseLog parses a log with this event
-func (e *Event) ParseLog(log *ethgo.Log) (map[string]interface{}, error) {
+func (e *Event) ParseLog(log *core.Log) (map[string]interface{}, error) {
 	if !e.Match(log) {
 		return nil, fmt.Errorf("log does not match this event")
 	}

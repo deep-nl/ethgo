@@ -5,9 +5,9 @@ package ens
 
 import (
 	"fmt"
+	"github.com/deep-nl/ethgo/core"
 	"math/big"
 
-	"github.com/deep-nl/ethgo"
 	"github.com/deep-nl/ethgo/contract"
 	"github.com/deep-nl/ethgo/jsonrpc"
 )
@@ -23,23 +23,23 @@ type Resolver struct {
 }
 
 // DeployResolver deploys a new Resolver contract
-func DeployResolver(provider *jsonrpc.Client, from ethgo.Address, args []interface{}, opts ...contract.ContractOption) (contract.Txn, error) {
+func DeployResolver(provider *jsonrpc.Client, from core.Address, args []interface{}, opts ...contract.ContractOption) (contract.Txn, error) {
 	return contract.DeployContract(abiResolver, binResolver, args, opts...)
 }
 
 // NewResolver creates a new instance of the contract at a specific address
-func NewResolver(addr ethgo.Address, opts ...contract.ContractOption) *Resolver {
+func NewResolver(addr core.Address, opts ...contract.ContractOption) *Resolver {
 	return &Resolver{c: contract.NewContract(addr, abiResolver, opts...)}
 }
 
 // calls
 
 // ABI calls the ABI method in the solidity contract
-func (r *Resolver) ABI(node [32]byte, contentTypes *big.Int, block ...ethgo.BlockNumber) (retval0 *big.Int, retval1 []byte, err error) {
+func (r *Resolver) ABI(node [32]byte, contentTypes *big.Int, block ...core.BlockNumber) (retval0 *big.Int, retval1 []byte, err error) {
 	var out map[string]interface{}
 	var ok bool
 
-	out, err = r.c.Call("ABI", ethgo.EncodeBlock(block...), node, contentTypes)
+	out, err = r.c.Call("ABI", core.EncodeBlock(block...), node, contentTypes)
 	if err != nil {
 		return
 	}
@@ -60,17 +60,17 @@ func (r *Resolver) ABI(node [32]byte, contentTypes *big.Int, block ...ethgo.Bloc
 }
 
 // Addr calls the addr method in the solidity contract
-func (r *Resolver) Addr(node [32]byte, block ...ethgo.BlockNumber) (retval0 ethgo.Address, err error) {
+func (r *Resolver) Addr(node [32]byte, block ...core.BlockNumber) (retval0 core.Address, err error) {
 	var out map[string]interface{}
 	var ok bool
 
-	out, err = r.c.Call("addr", ethgo.EncodeBlock(block...), node)
+	out, err = r.c.Call("addr", core.EncodeBlock(block...), node)
 	if err != nil {
 		return
 	}
 
 	// decode outputs
-	retval0, ok = out["ret"].(ethgo.Address)
+	retval0, ok = out["ret"].(core.Address)
 	if !ok {
 		err = fmt.Errorf("failed to encode output at index 0")
 		return
@@ -80,11 +80,11 @@ func (r *Resolver) Addr(node [32]byte, block ...ethgo.BlockNumber) (retval0 ethg
 }
 
 // Content calls the content method in the solidity contract
-func (r *Resolver) Content(node [32]byte, block ...ethgo.BlockNumber) (retval0 [32]byte, err error) {
+func (r *Resolver) Content(node [32]byte, block ...core.BlockNumber) (retval0 [32]byte, err error) {
 	var out map[string]interface{}
 	var ok bool
 
-	out, err = r.c.Call("content", ethgo.EncodeBlock(block...), node)
+	out, err = r.c.Call("content", core.EncodeBlock(block...), node)
 	if err != nil {
 		return
 	}
@@ -100,11 +100,11 @@ func (r *Resolver) Content(node [32]byte, block ...ethgo.BlockNumber) (retval0 [
 }
 
 // Name calls the name method in the solidity contract
-func (r *Resolver) Name(node [32]byte, block ...ethgo.BlockNumber) (retval0 string, err error) {
+func (r *Resolver) Name(node [32]byte, block ...core.BlockNumber) (retval0 string, err error) {
 	var out map[string]interface{}
 	var ok bool
 
-	out, err = r.c.Call("name", ethgo.EncodeBlock(block...), node)
+	out, err = r.c.Call("name", core.EncodeBlock(block...), node)
 	if err != nil {
 		return
 	}
@@ -120,11 +120,11 @@ func (r *Resolver) Name(node [32]byte, block ...ethgo.BlockNumber) (retval0 stri
 }
 
 // Pubkey calls the pubkey method in the solidity contract
-func (r *Resolver) Pubkey(node [32]byte, block ...ethgo.BlockNumber) (retval0 [32]byte, retval1 [32]byte, err error) {
+func (r *Resolver) Pubkey(node [32]byte, block ...core.BlockNumber) (retval0 [32]byte, retval1 [32]byte, err error) {
 	var out map[string]interface{}
 	var ok bool
 
-	out, err = r.c.Call("pubkey", ethgo.EncodeBlock(block...), node)
+	out, err = r.c.Call("pubkey", core.EncodeBlock(block...), node)
 	if err != nil {
 		return
 	}
@@ -145,11 +145,11 @@ func (r *Resolver) Pubkey(node [32]byte, block ...ethgo.BlockNumber) (retval0 [3
 }
 
 // SupportsInterface calls the supportsInterface method in the solidity contract
-func (r *Resolver) SupportsInterface(interfaceID [4]byte, block ...ethgo.BlockNumber) (retval0 bool, err error) {
+func (r *Resolver) SupportsInterface(interfaceID [4]byte, block ...core.BlockNumber) (retval0 bool, err error) {
 	var out map[string]interface{}
 	var ok bool
 
-	out, err = r.c.Call("supportsInterface", ethgo.EncodeBlock(block...), interfaceID)
+	out, err = r.c.Call("supportsInterface", core.EncodeBlock(block...), interfaceID)
 	if err != nil {
 		return
 	}
@@ -172,7 +172,7 @@ func (r *Resolver) SetABI(node [32]byte, contentType *big.Int, data []byte) (con
 }
 
 // SetAddr sends a setAddr transaction in the solidity contract
-func (r *Resolver) SetAddr(node [32]byte, addr ethgo.Address) (contract.Txn, error) {
+func (r *Resolver) SetAddr(node [32]byte, addr core.Address) (contract.Txn, error) {
 	return r.c.Txn("setAddr", node, addr)
 }
 
@@ -193,22 +193,22 @@ func (r *Resolver) SetPubkey(node [32]byte, x [32]byte, y [32]byte) (contract.Tx
 
 // events
 
-func (r *Resolver) ABIChangedEventSig() ethgo.Hash {
+func (r *Resolver) ABIChangedEventSig() core.Hash {
 	return r.c.GetABI().Events["ABIChanged"].ID()
 }
 
-func (r *Resolver) AddrChangedEventSig() ethgo.Hash {
+func (r *Resolver) AddrChangedEventSig() core.Hash {
 	return r.c.GetABI().Events["AddrChanged"].ID()
 }
 
-func (r *Resolver) ContentChangedEventSig() ethgo.Hash {
+func (r *Resolver) ContentChangedEventSig() core.Hash {
 	return r.c.GetABI().Events["ContentChanged"].ID()
 }
 
-func (r *Resolver) NameChangedEventSig() ethgo.Hash {
+func (r *Resolver) NameChangedEventSig() core.Hash {
 	return r.c.GetABI().Events["NameChanged"].ID()
 }
 
-func (r *Resolver) PubkeyChangedEventSig() ethgo.Hash {
+func (r *Resolver) PubkeyChangedEventSig() core.Hash {
 	return r.c.GetABI().Events["PubkeyChanged"].ID()
 }

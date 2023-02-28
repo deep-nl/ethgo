@@ -2,16 +2,16 @@ package ens
 
 import (
 	"encoding/hex"
+	"github.com/deep-nl/ethgo/core"
 	"testing"
 
-	"github.com/deep-nl/ethgo"
 	"github.com/deep-nl/ethgo/jsonrpc"
 	"github.com/deep-nl/ethgo/testutil"
 	"github.com/stretchr/testify/assert"
 )
 
 var (
-	mainnetAddr = ethgo.HexToAddress("0x314159265dD8dbb310642f98f50C066173C1259b")
+	mainnetAddr = core.HexToAddress("0x314159265dD8dbb310642f98f50C066173C1259b")
 )
 
 func TestResolveAddr(t *testing.T) {

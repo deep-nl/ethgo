@@ -1,10 +1,9 @@
 package store
 
 import (
+	"github.com/deep-nl/ethgo/core"
 	"reflect"
 	"testing"
-
-	"github.com/deep-nl/ethgo"
 )
 
 // SetupDB is a function that creates a backend
@@ -27,10 +26,10 @@ func testMultipleStores(t *testing.T, setup SetupDB) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	log := ethgo.Log{
+	log := core.Log{
 		BlockNumber: 10,
 	}
-	if err := entry0.StoreLogs([]*ethgo.Log{&log}); err != nil {
+	if err := entry0.StoreLogs([]*core.Log{&log}); err != nil {
 		t.Fatal(err)
 	}
 
@@ -38,10 +37,10 @@ func testMultipleStores(t *testing.T, setup SetupDB) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	log = ethgo.Log{
+	log = core.Log{
 		BlockNumber: 15,
 	}
-	if err := entry1.StoreLogs([]*ethgo.Log{&log}); err != nil {
+	if err := entry1.StoreLogs([]*core.Log{&log}); err != nil {
 		t.Fatal(err)
 	}
 
@@ -159,10 +158,10 @@ func testStoreLogs(t *testing.T, setup SetupDB) {
 		t.Fatal("index should be zero")
 	}
 
-	log := ethgo.Log{
+	log := core.Log{
 		BlockNumber: 10,
 	}
-	if err := entry.StoreLogs([]*ethgo.Log{&log}); err != nil {
+	if err := entry.StoreLogs([]*core.Log{&log}); err != nil {
 		t.Fatal(err)
 	}
 
@@ -174,7 +173,7 @@ func testStoreLogs(t *testing.T, setup SetupDB) {
 		t.Fatal("index should be one")
 	}
 
-	var log2 ethgo.Log
+	var log2 core.Log
 	if err := entry.GetLog(0, &log2); err != nil {
 		t.Fatal(err)
 	}
@@ -200,9 +199,9 @@ func testRemoveLogs(t *testing.T, setup SetupDB) {
 	store, close := setup(t)
 	defer close()
 
-	logs := []*ethgo.Log{}
+	logs := []*core.Log{}
 	for i := uint64(0); i < 10; i++ {
-		logs = append(logs, &ethgo.Log{
+		logs = append(logs, &core.Log{
 			BlockNumber: i,
 		})
 	}

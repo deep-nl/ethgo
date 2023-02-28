@@ -2,10 +2,10 @@ package testcases
 
 import (
 	"encoding/hex"
+	"github.com/deep-nl/ethgo/core"
 	"strings"
 	"testing"
 
-	"github.com/deep-nl/ethgo"
 	"github.com/deep-nl/ethgo/wallet"
 	"github.com/stretchr/testify/assert"
 )
@@ -32,7 +32,7 @@ func TestAccounts(t *testing.T) {
 		}
 
 		// test that an string address can be checksumed
-		addr := ethgo.HexToAddress(spec.Address)
+		addr := core.HexToAddress(spec.Address)
 		assert.Equal(t, addr.String(), spec.Checksum)
 	}
 }

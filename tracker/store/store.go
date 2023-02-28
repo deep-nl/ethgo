@@ -1,6 +1,8 @@
 package store
 
-import "github.com/deep-nl/ethgo"
+import (
+	"github.com/deep-nl/ethgo/core"
+)
 
 // Store is a datastore for the tracker
 type Store interface {
@@ -26,11 +28,11 @@ type Entry interface {
 	LastIndex() (uint64, error)
 
 	// StoreLogs stores the web3 logs of the event
-	StoreLogs(logs []*ethgo.Log) error
+	StoreLogs(logs []*core.Log) error
 
 	// RemoveLogs all the logs starting at index 'indx'
 	RemoveLogs(indx uint64) error
 
 	// GetLog returns the log at indx
-	GetLog(indx uint64, log *ethgo.Log) error
+	GetLog(indx uint64, log *core.Log) error
 }

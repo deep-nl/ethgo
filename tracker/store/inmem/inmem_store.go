@@ -1,10 +1,10 @@
 package inmem
 
 import (
+	"github.com/deep-nl/ethgo/core"
 	"strings"
 	"sync"
 
-	"github.com/deep-nl/ethgo"
 	"github.com/deep-nl/ethgo/tracker/store"
 )
 
@@ -68,7 +68,7 @@ func (i *InmemStore) GetEntry(hash string) (store.Entry, error) {
 		return e, nil
 	}
 	e = &Entry{
-		logs: []*ethgo.Log{},
+		logs: []*core.Log{},
 	}
 	i.entries[hash] = e
 	return e, nil
@@ -77,7 +77,7 @@ func (i *InmemStore) GetEntry(hash string) (store.Entry, error) {
 // Entry is a store.Entry implementation
 type Entry struct {
 	l    sync.RWMutex
-	logs []*ethgo.Log
+	logs []*core.Log
 }
 
 // LastIndex implements the store interface
@@ -88,12 +88,12 @@ func (e *Entry) LastIndex() (uint64, error) {
 }
 
 // Logs returns the logs of the inmemory store
-func (e *Entry) Logs() []*ethgo.Log {
+func (e *Entry) Logs() []*core.Log {
 	return e.logs
 }
 
 // StoreLogs implements the store interface
-func (e *Entry) StoreLogs(logs []*ethgo.Log) error {
+func (e *Entry) StoreLogs(logs []*core.Log) error {
 	e.l.Lock()
 	defer e.l.Unlock()
 	for _, log := range logs {
@@ -111,7 +111,7 @@ func (e *Entry) RemoveLogs(indx uint64) error {
 }
 
 // GetLog implements the store interface
-func (e *Entry) GetLog(indx uint64, log *ethgo.Log) error {
+func (e *Entry) GetLog(indx uint64, log *core.Log) error {
 	*log = *e.logs[indx]
 	return nil
 }

@@ -1,9 +1,9 @@
 package erc20
 
 import (
+	"github.com/deep-nl/ethgo/core"
 	"testing"
 
-	"github.com/deep-nl/ethgo"
 	"github.com/deep-nl/ethgo/contract"
 	"github.com/deep-nl/ethgo/jsonrpc"
 	"github.com/deep-nl/ethgo/testutil"
@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	zeroX = ethgo.HexToAddress("0xe41d2489571d322189246dafa5ebde1f4699f498")
+	zeroX = core.HexToAddress("0xe41d2489571d322189246dafa5ebde1f4699f498")
 )
 
 func TestERC20Decimals(t *testing.T) {

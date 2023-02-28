@@ -1,6 +1,8 @@
 package jsonrpc
 
-import "github.com/deep-nl/ethgo"
+import (
+	"github.com/deep-nl/ethgo/core"
+)
 
 type Debug struct {
 	c *Client
@@ -28,7 +30,7 @@ type StructLogs struct {
 	Storage map[string]string
 }
 
-func (d *Debug) TraceTransaction(hash ethgo.Hash) (*TransactionTrace, error) {
+func (d *Debug) TraceTransaction(hash core.Hash) (*TransactionTrace, error) {
 	var res *TransactionTrace
 	err := d.c.Call("debug_traceTransaction", &res, hash)
 	return res, err
