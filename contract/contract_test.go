@@ -155,6 +155,7 @@ func TestContract_Transaction(t *testing.T) {
 	contract := NewContract(addr, abi, WithJsonRPCEndpoint(s.HTTPAddr()), WithSender(key))
 
 	for i := 0; i < 10; i++ {
+
 		txn, err := contract.Txn("setA")
 		assert.NoError(t, err)
 
@@ -269,6 +270,49 @@ func TestContract_EIP1559(t *testing.T) {
 	s := testutil.NewTestServer(t)
 
 	key, _ := wallet.GenerateKey()
+	s.Fund(key.Address())
+
+	cc := &testutil.Contract{}
+	cc.AddOutputCaller("example")
+
+	artifact, addr, err := s.DeployContract(cc)
+	require.NoError(t, err)
+
+	abi, err := abi.NewABI(artifact.Abi)
+	assert.NoError(t, err)
+
+	client, _ := jsonrpc.NewClient(s.HTTPAddr())
+	contract := NewContract(addr, abi, WithJsonRPC(client.Eth()), WithSender(key), WithEIP1559())
+
+	txn, err := contract.Txn("example")
+	assert.NoError(t, err)
+
+	err = txn.Do()
+	assert.NoError(t, err)
+
+	_, err = txn.Wait()
+	assert.NoError(t, err)
+
+	// get transaction from rpc endpoint
+	txnObj, err := client.Eth().GetTransactionByHash(txn.Hash())
+	assert.NoError(t, err)
+
+	assert.NotZero(t, txnObj.Gas)
+	assert.NotZero(t, txnObj.GasPrice)
+	assert.NotZero(t, txnObj.MaxFeePerGas)
+	assert.NotZero(t, txnObj.MaxPriorityFeePerGas)
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+// -------------------------------------------TestnetTest----------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
+
+func TestContract_Basic(t *testing.T) {
+	s := testutil.NewTestServer(t)
+
+	//key, _ := wallet.GenerateKey()
+	key := wallet.KeyFromString(testutil.FromKey)
+
 	s.Fund(key.Address())
 
 	cc := &testutil.Contract{}

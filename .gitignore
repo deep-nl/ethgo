@@ -2,6 +2,7 @@ bin/
 pkg/
 
 .idea
+.env
 
 # website
 node_modules

@@ -1,6 +1,7 @@
 package abi
 
 import (
+	"os"
 	"reflect"
 	"testing"
 
@@ -361,4 +362,17 @@ func TestAbi_ParseMethodSignature(t *testing.T) {
 			assert.Equal(t, c.output, "")
 		}
 	}
+}
+
+func TestABI_FROMFILE(t *testing.T) {
+	// "/Users/nilei/GolandProjects/ethgo/abi"
+	//file, err := os.Getwd()
+	file, err := os.Open("../data/uniswap-v2/router02.abi")
+	assert.NoError(t, err)
+	defer file.Close()
+	t.Logf("%T", file)
+	abi, err := NewABIFromReader(file)
+	assert.NoError(t, err)
+	t.Log(abi.Constructor)
+
 }

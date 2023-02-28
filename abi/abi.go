@@ -7,6 +7,7 @@ import (
 	"github.com/deep-nl/ethgo/core"
 	"hash"
 	"io"
+	"os"
 	"regexp"
 	"strings"
 	"sync"
@@ -97,6 +98,16 @@ func NewABIFromReader(r io.Reader) (*ABI, error) {
 	if err := dec.Decode(&abi); err != nil {
 		return nil, err
 	}
+	return abi, nil
+}
+
+func NewABIFromFile(filePath string) (*ABI, error) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+	abi, err := NewABIFromReader(file)
 	return abi, nil
 }
 
