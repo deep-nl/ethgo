@@ -10,7 +10,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/umbracle/ethgo"
+	"github.com/deep-nl/ethgo"
 	"golang.org/x/crypto/sha3"
 )
 

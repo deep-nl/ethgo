@@ -8,7 +8,7 @@ import (
 	"fmt"
 
 	"github.com/btcsuite/btcd/btcec"
-	"github.com/umbracle/ethgo"
+	"github.com/deep-nl/ethgo"
 )
 
 // S256 is the secp256k1 elliptic curve

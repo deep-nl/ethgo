@@ -4,11 +4,11 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/deep-nl/ethgo"
+	"github.com/deep-nl/ethgo/jsonrpc"
+	"github.com/deep-nl/ethgo/testutil"
+	"github.com/deep-nl/ethgo/wallet"
 	"github.com/stretchr/testify/assert"
-	"github.com/umbracle/ethgo"
-	"github.com/umbracle/ethgo/jsonrpc"
-	"github.com/umbracle/ethgo/testutil"
-	"github.com/umbracle/ethgo/wallet"
 )
 
 func TestSendSignedTransaction(t *testing.T) {
@@ -56,6 +56,7 @@ func TestSendSignedTransaction(t *testing.T) {
 		txn.Gas = limit
 	}
 
+	// creat a signer to signature the txn
 	signer := wallet.NewEIP155Signer(chainID.Uint64())
 	txn, err = signer.SignTx(txn, key)
 	assert.NoError(t, err)

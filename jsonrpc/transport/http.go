@@ -3,7 +3,7 @@ package transport
 import (
 	"encoding/json"
 
-	"github.com/umbracle/ethgo/jsonrpc/codec"
+	"github.com/deep-nl/ethgo/jsonrpc/codec"
 	"github.com/valyala/fasthttp"
 )
 

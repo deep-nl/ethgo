@@ -3,9 +3,9 @@ package ens
 import (
 	"testing"
 
+	"github.com/deep-nl/ethgo"
+	"github.com/deep-nl/ethgo/testutil"
 	"github.com/stretchr/testify/assert"
-	"github.com/umbracle/ethgo"
-	"github.com/umbracle/ethgo/testutil"
 )
 
 func TestENS_Resolve(t *testing.T) {

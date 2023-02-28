@@ -4,10 +4,10 @@ import (
 	"encoding/hex"
 	"testing"
 
+	"github.com/deep-nl/ethgo"
+	"github.com/deep-nl/ethgo/jsonrpc"
+	"github.com/deep-nl/ethgo/testutil"
 	"github.com/stretchr/testify/assert"
-	"github.com/umbracle/ethgo"
-	"github.com/umbracle/ethgo/jsonrpc"
-	"github.com/umbracle/ethgo/testutil"
 )
 
 var (

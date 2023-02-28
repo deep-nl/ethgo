@@ -3,15 +3,15 @@ package jsonrpc
 import (
 	"bytes"
 	"encoding/hex"
-	"github.com/umbracle/ethgo/wallet"
+	"github.com/deep-nl/ethgo/wallet"
 	"math/big"
 	"strings"
 	"testing"
 
+	"github.com/deep-nl/ethgo"
+	"github.com/deep-nl/ethgo/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/umbracle/ethgo"
-	"github.com/umbracle/ethgo/testutil"
 )
 
 var (
@@ -288,7 +288,7 @@ func TestEthGetNonce(t *testing.T) {
 	c, _ := NewClient(s.HTTPAddr())
 
 	//receipt, err := s.ProcessBlockWithReceipt()
-	receipt, err := s.ProcessWithReceipt()
+	receipt, err := s.ProcessRawTxWithReceipt()
 	assert.NoError(t, err)
 
 	// query the balance with different options
@@ -393,4 +393,39 @@ func TestEthFeeHistory(t *testing.T) {
 	fee, err := c.Eth().FeeHistory(from, to)
 	assert.NoError(t, err)
 	assert.NotNil(t, fee)
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+// -------------------------------------------NewTestingServer----------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
+
+func TestEth_SendRawTransaction_withNewServer(t *testing.T) {
+	s := testutil.NewTestingServer(t)
+
+	//c := s.HttpClient()
+	//c, _ := NewClient(s.HTTPAddr())
+	//c.SetMaxConnsLimit(0)
+	//toAddr := ethgo.HexToAddress(testutil.ToAddr)
+	txn := &ethgo.Transaction{
+		From:     s.Account(0),
+		GasPrice: testutil.DefaultGasPrice,
+		Gas:      testutil.DefaultGasLimit,
+		To:       &testutil.DummyAddr,
+		Value:    big.NewInt(testutil.Value),
+	}
+	rec, err := s.SendRawTxn(testutil.FromKey, txn)
+	assert.NoError(t, err)
+	hash := rec.TransactionHash
+	t.Logf("hash: %v", hash)
+
+	_, err = s.WaitForReceipt(hash)
+	assert.NoError(t, err)
+}
+
+func Test_MaxListenerNum(t *testing.T) {
+	for i := 0; i < 15; i++ {
+		s := testutil.NewServer()
+		s.ProcessBlockRaw()
+
+	}
 }

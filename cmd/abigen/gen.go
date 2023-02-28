@@ -9,9 +9,9 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/umbracle/ethgo/abi"
-	"github.com/umbracle/ethgo/cmd/version"
-	"github.com/umbracle/ethgo/compiler"
+	"github.com/deep-nl/ethgo/abi"
+	"github.com/deep-nl/ethgo/cmd/version"
+	"github.com/deep-nl/ethgo/compiler"
 )
 
 type config struct {
@@ -182,9 +182,9 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/umbracle/ethgo"
-	"github.com/umbracle/ethgo/contract"
-	"github.com/umbracle/ethgo/jsonrpc"
+	"github.com/deep-nl/ethgo"
+	"github.com/deep-nl/ethgo/contract"
+	"github.com/deep-nl/ethgo/jsonrpc"
 )
 
 var (
@@ -249,7 +249,7 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"github.com/umbracle/ethgo/abi"
+	"github.com/deep-nl/ethgo/abi"
 )
 
 var abi{{.Name}} *abi.ABI

@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/umbracle/ethgo/wallet"
+	"github.com/deep-nl/ethgo/wallet"
 	"math/big"
 	"math/rand"
 	"net"
@@ -17,18 +17,8 @@ import (
 	"time"
 
 	//"github.com/ory/dockertest"
-	"github.com/umbracle/ethgo"
-	"github.com/umbracle/ethgo/compiler"
-	"golang.org/x/crypto/sha3"
-)
-
-var (
-	DefaultGasPrice = uint64(1879048192) // 0x70000000
-	DefaultGasLimit = uint64(5242880)    // 0x500000
-)
-
-var (
-	DummyAddr = ethgo.HexToAddress("0x015f68893a39b3ba0681584387670ff8b00f4db2")
+	"github.com/deep-nl/ethgo"
+	"github.com/deep-nl/ethgo/compiler"
 )
 
 func getOpenPort() string {
@@ -57,7 +47,7 @@ func MultiAddr(t *testing.T, c func(s *TestServer, addr string)) {
 	// ip addr
 	// c(s, s.IPCPath())
 
-	// s.Close()
+	//s.Close()
 }
 
 // TestServerConfig is the configuration of the server
@@ -74,85 +64,6 @@ type TestServer struct {
 	accounts []ethgo.Address
 	client   *ethClient
 }
-
-type Server struct {
-	httpUrl string
-	wssUrl  string
-}
-
-// DeployTestServer creates a new Geth test server
-//func DeployTestServer(t *testing.T, cb ServerConfigCallback) *TestServer {
-//	tmpDir, err := os.MkdirTemp("/tmp", "geth-")
-//	if err != nil {
-//		t.Fatalf("err: %s", err)
-//	}
-//
-//	config := &TestServerConfig{}
-//	if cb != nil {
-//		cb(config)
-//	}
-//
-//	args := []string{"--dev"}
-//
-//	// periodic mining
-//	if config.Period != 0 {
-//		args = append(args, "--dev.period", strconv.Itoa(config.Period))
-//	}
-//
-//	// add data dir
-//	args = append(args, "--datadir", "/eth1data")
-//
-//	// add ipcpath
-//	args = append(args, "--ipcpath", "/eth1data/geth.ipc")
-//
-//	// enable rpc
-//	args = append(args, "--http", "--http.addr", "0.0.0.0", "--http.api", "eth,net,web3,debug")
-//
-//	// enable ws
-//	args = append(args, "--ws", "--ws.addr", "0.0.0.0")
-//
-//	// enable debug verbosity
-//	args = append(args, "--verbosity", "4")
-//
-//	opts := &dockertest.RunOptions{
-//		Repository: "ethereum/client-go",
-//		Tag:        "v1.10.15",
-//		Cmd:        args,
-//		Mounts: []string{
-//			tmpDir + ":/eth1data",
-//		},
-//	}
-//
-//	pool, err := dockertest.NewPool("")
-//	if err != nil {
-//		t.Fatalf("Could not connect to docker: %s", err)
-//	}
-//	resource, err := pool.RunWithOptions(opts)
-//	if err != nil {
-//		t.Fatalf("Could not start go-ethereum: %s", err)
-//	}
-//
-//	closeFn := func() {
-//		if err := pool.Purge(resource); err != nil {
-//			t.Fatalf("Could not purge geth: %s", err)
-//		}
-//	}
-//
-//	ipAddr := resource.Container.NetworkSettings.IPAddress
-//	addr := fmt.Sprintf("http://%s:8545", ipAddr)
-//
-//	if err := pool.Retry(func() error {
-//		return testHTTPEndpoint(addr)
-//	}); err != nil {
-//		closeFn()
-//	}
-//
-//	t.Cleanup(func() {
-//		closeFn()
-//	})
-//
-//	return NewTestServer(t, addr)
-//}
 
 func NewTestServer(t *testing.T, addrs ...string) *TestServer {
 	var addr string
@@ -193,7 +104,7 @@ func (t *TestServer) IPCPath() string {
 
 // WSAddr returns the websocket endpoint
 func (t *TestServer) WSAddr() string {
-	return fmt.Sprintf("ws://localhost:8546")
+	return fmt.Sprintf("ws://localhost:8545")
 }
 
 // HTTPAddr returns the http endpoint
@@ -211,8 +122,8 @@ func (t *TestServer) ProcessBlockWithReceipt() (*ethgo.Receipt, error) {
 	return receipt, err
 }
 
-// ProcessWithReceipt ProcessBlock processes a new block via sendrawTransaction
-func (t *TestServer) ProcessWithReceipt() (*ethgo.Receipt, error) {
+// ProcessRawTxWithReceipt ProcessBlock processes a new block via sendrawTransaction
+func (t *TestServer) ProcessRawTxWithReceipt() (*ethgo.Receipt, error) {
 	receipt, err := t.SendRawTxn(&ethgo.Transaction{
 		From:  t.accounts[0],
 		To:    &DummyAddr,
@@ -228,15 +139,15 @@ func (t *TestServer) ProcessBlock() error {
 
 // deep add
 func (t *TestServer) ProcessBlockRaw() error {
-	_, err := t.ProcessWithReceipt()
+	_, err := t.ProcessRawTxWithReceipt()
 	return err
 }
 
-var emptyAddr ethgo.Address
-
-func isEmptyAddr(w ethgo.Address) bool {
-	return bytes.Equal(w[:], emptyAddr[:])
-}
+//var emptyAddr ethgo.Address
+//
+//func isEmptyAddr(w ethgo.Address) bool {
+//	return bytes.Equal(w[:], emptyAddr[:])
+//}
 
 // Call sends a contract call
 func (t *TestServer) Call(msg *ethgo.CallMsg) (string, error) {
@@ -435,13 +346,13 @@ func (e *ethClient) call(method string, out interface{}, params ...interface{}) 
 	return nil
 }
 
-// MethodSig returns the signature of a non-parametrized function
-func MethodSig(name string) []byte {
-	h := sha3.NewLegacyKeccak256()
-	h.Write([]byte(name + "()"))
-	b := h.Sum(nil)
-	return b[:4]
-}
+//// MethodSig returns the signature of a non-parametrized function
+//func MethodSig(name string) []byte {
+//	h := sha3.NewLegacyKeccak256()
+//	h.Write([]byte(name + "()"))
+//	b := h.Sum(nil)
+//	return b[:4]
+//}
 
 // TestInfuraEndpoint returns the testing infura endpoint to make testing requests
 func TestInfuraEndpoint(t *testing.T) string {
@@ -460,3 +371,77 @@ func testHTTPEndpoint(endpoint string) error {
 	defer resp.Body.Close()
 	return nil
 }
+
+// DeployTestServer creates a new Geth test server
+//func DeployTestServer(t *testing.T, cb ServerConfigCallback) *TestServer {
+//	tmpDir, err := os.MkdirTemp("/tmp", "geth-")
+//	if err != nil {
+//		t.Fatalf("err: %s", err)
+//	}
+//
+//	config := &TestServerConfig{}
+//	if cb != nil {
+//		cb(config)
+//	}
+//
+//	args := []string{"--dev"}
+//
+//	// periodic mining
+//	if config.Period != 0 {
+//		args = append(args, "--dev.period", strconv.Itoa(config.Period))
+//	}
+//
+//	// add data dir
+//	args = append(args, "--datadir", "/eth1data")
+//
+//	// add ipcpath
+//	args = append(args, "--ipcpath", "/eth1data/geth.ipc")
+//
+//	// enable rpc
+//	args = append(args, "--http", "--http.addr", "0.0.0.0", "--http.api", "eth,net,web3,debug")
+//
+//	// enable ws
+//	args = append(args, "--ws", "--ws.addr", "0.0.0.0")
+//
+//	// enable debug verbosity
+//	args = append(args, "--verbosity", "4")
+//
+//	opts := &dockertest.RunOptions{
+//		Repository: "ethereum/client-go",
+//		Tag:        "v1.10.15",
+//		Cmd:        args,
+//		Mounts: []string{
+//			tmpDir + ":/eth1data",
+//		},
+//	}
+//
+//	pool, err := dockertest.NewPool("")
+//	if err != nil {
+//		t.Fatalf("Could not connect to docker: %s", err)
+//	}
+//	resource, err := pool.RunWithOptions(opts)
+//	if err != nil {
+//		t.Fatalf("Could not start go-ethereum: %s", err)
+//	}
+//
+//	closeFn := func() {
+//		if err := pool.Purge(resource); err != nil {
+//			t.Fatalf("Could not purge geth: %s", err)
+//		}
+//	}
+//
+//	ipAddr := resource.Container.NetworkSettings.IPAddress
+//	addr := fmt.Sprintf("http://%s:8545", ipAddr)
+//
+//	if err := pool.Retry(func() error {
+//		return testHTTPEndpoint(addr)
+//	}); err != nil {
+//		closeFn()
+//	}
+//
+//	t.Cleanup(func() {
+//		closeFn()
+//	})
+//
+//	return NewTestServer(t, addr)
+//}

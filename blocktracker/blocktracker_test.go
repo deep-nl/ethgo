@@ -7,13 +7,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/deep-nl/ethgo"
+	"github.com/deep-nl/ethgo/jsonrpc"
+	"github.com/deep-nl/ethgo/testutil"
 	"github.com/stretchr/testify/assert"
-	"github.com/umbracle/ethgo"
-	"github.com/umbracle/ethgo/jsonrpc"
-	"github.com/umbracle/ethgo/testutil"
 )
 
-func testListener(t *testing.T, server *testutil.TestServer, tracker BlockTrackerInterface) {
+func testListener(t *testing.T, server *testutil.Server, tracker BlockTrackerInterface) {
 	ctx, cancelFn := context.WithCancel(context.Background())
 	defer cancelFn()
 
@@ -39,21 +39,23 @@ func testListener(t *testing.T, server *testutil.TestServer, tracker BlockTracke
 				}
 			}
 			lastBlock = block
+			return
 
 		case <-time.After(4 * time.Second):
 			t.Fatal("timeout to receive block tracker block")
 		}
 	}
-
-	server.ProcessBlock()
+	//server = testutil.NewTestServer(t, "http://127.0.0.1:8545")
+	server.ProcessRawTxWithReceipt()
 	recv()
 
-	server.ProcessBlock()
-	recv()
+	//server.ProcessRawTxWithReceipt()
+	//recv()
 }
 
 func TestBlockTracker_Listener_JsonRPC(t *testing.T) {
-	s := testutil.NewTestServer(t)
+	//s := testutil.NewTestServer(t)
+	s := testutil.NewTestingServer(t)
 
 	c, _ := jsonrpc.NewClient(s.HTTPAddr())
 	defer c.Close()
@@ -65,7 +67,7 @@ func TestBlockTracker_Listener_JsonRPC(t *testing.T) {
 }
 
 func TestBlockTracker_Listener_Websocket(t *testing.T) {
-	s := testutil.NewTestServer(t)
+	s := testutil.NewTestingServer(t)
 
 	c, _ := jsonrpc.NewClient(s.WSAddr())
 	defer c.Close()
@@ -79,28 +81,38 @@ func TestBlockTracker_Listener_Websocket(t *testing.T) {
 }
 
 func TestBlockTracker_Lifecycle(t *testing.T) {
-	t.Skip()
-	s := testutil.NewTestServer(t)
+	//t.Skip()
+	//s := testutil.NewTestServer(t)
+	s := testutil.NewTestingServer(t)
 
 	c, _ := jsonrpc.NewClient(s.HTTPAddr())
 	tr := NewBlockTracker(c.Eth())
 	assert.NoError(t, tr.Init())
 
-	go tr.Start()
+	go func() {
+		err := tr.Start()
+		assert.NoError(t, err)
+	}()
 
 	// try to mine a block at least every 1 second
 	go func() {
 		for i := 0; i < 10; i++ {
-			s.ProcessBlock()
+			s.ProcessBlockRaw()
 			time.After(1 * time.Second)
 		}
 	}()
 
 	sub := tr.Subscribe()
-	for i := 0; i < 10; i++ {
+	//for i := 0; i < 10; i++ {
+	for {
 		select {
-		case <-sub:
-		case <-time.After(2 * time.Second):
+		case data := <-sub:
+			//t.Log(*data)
+			for _, block := range data.Added {
+				t.Log(block.Number)
+			}
+			return
+		case <-time.After(3 * time.Second):
 			t.Fatal("bad")
 		}
 	}

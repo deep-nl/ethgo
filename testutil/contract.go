@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/umbracle/ethgo/compiler"
+	"github.com/deep-nl/ethgo/compiler"
 	"golang.org/x/crypto/sha3"
 )
 

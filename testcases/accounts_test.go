@@ -5,9 +5,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/deep-nl/ethgo"
+	"github.com/deep-nl/ethgo/wallet"
 	"github.com/stretchr/testify/assert"
-	"github.com/umbracle/ethgo"
-	"github.com/umbracle/ethgo/wallet"
 )
 
 func TestAccounts(t *testing.T) {
