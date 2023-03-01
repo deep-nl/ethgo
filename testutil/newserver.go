@@ -5,8 +5,12 @@ import (
 	"fmt"
 	"github.com/deep-nl/ethgo/core"
 	"github.com/deep-nl/ethgo/wallet"
+	"github.com/joho/godotenv"
 	"log"
 	"math/big"
+	"os"
+	"path"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -55,8 +59,18 @@ func NewTestingServer(t *testing.T, addrs ...string) *Server {
 }
 
 func NewServer(addrs ...string) *Server {
+	// ------------------------------extract pat --------
+	_, filename, _, ok := runtime.Caller(0)
+	if !ok {
+		panic("Failed to get current directory")
+	}
+	envPath := path.Join(path.Dir(path.Dir(filename)), ".env")
+	err := godotenv.Load(envPath)
+	if err != nil {
+		panic("get env file error")
+	}
 	if len(addrs) == 0 {
-		addrs = []string{"http://127.0.0.1:8545", "ws://127.0.0.1:8545"}
+		addrs = []string{os.Getenv("ALCHEMY_HTTP_URL"), os.Getenv("ALCHEMY_WS_URL")}
 	}
 	server := &Server{}
 	for _, url := range addrs {

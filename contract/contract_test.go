@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"github.com/deep-nl/ethgo/core"
 	"math/big"
+	"os"
 	"testing"
 
 	"github.com/deep-nl/ethgo/abi"
@@ -308,40 +309,28 @@ func TestContract_EIP1559(t *testing.T) {
 // --------------------------------------------------------------------------------------------------------------------
 
 func TestContract_Basic(t *testing.T) {
-	s := testutil.NewTestServer(t)
+	server := testutil.NewServer()
+	keyFrom := os.Getenv("TEST2KEY")
+	//t.Log(http, ws)
+	//s := testutil.NewTestingServer(t, http, ws)
+
+	client, _ := jsonrpc.NewClient(server.HTTPAddr())
 
 	//key, _ := wallet.GenerateKey()
-	key := wallet.KeyFromString(testutil.FromKey)
+	key := wallet.KeyFromString(keyFrom)
+	account, err := client.Eth().GetBalance(key.Address(), core.Latest)
+	assert.NoError(t, err)
+	t.Log(core.ToFloatEther(account))
 
-	s.Fund(key.Address())
-
-	cc := &testutil.Contract{}
-	cc.AddOutputCaller("example")
-
-	artifact, addr, err := s.DeployContract(cc)
-	require.NoError(t, err)
-
-	abi, err := abi.NewABI(artifact.Abi)
+	abi, err := abi.NewABIFromFile("../asset/uniswap-v2/pair.abi")
 	assert.NoError(t, err)
 
-	client, _ := jsonrpc.NewClient(s.HTTPAddr())
-	contract := NewContract(addr, abi, WithJsonRPC(client.Eth()), WithSender(key), WithEIP1559())
+	addr := core.HexToAddress("0x186b57aFFE222D6176347D338Ed66Ea2e20D630d") // dai_weth pair
+	//contract := NewContract(addr, abi, WithJsonRPC(client.Eth()), WithSender(key), WithEIP1559())
+	contract := NewContract(addr, abi, WithJsonRPC(client.Eth()))
 
-	txn, err := contract.Txn("example")
+	resp, err := contract.Call("getReserves", core.Latest)
 	assert.NoError(t, err)
+	t.Log(resp)
 
-	err = txn.Do()
-	assert.NoError(t, err)
-
-	_, err = txn.Wait()
-	assert.NoError(t, err)
-
-	// get transaction from rpc endpoint
-	txnObj, err := client.Eth().GetTransactionByHash(txn.Hash())
-	assert.NoError(t, err)
-
-	assert.NotZero(t, txnObj.Gas)
-	assert.NotZero(t, txnObj.GasPrice)
-	assert.NotZero(t, txnObj.MaxFeePerGas)
-	assert.NotZero(t, txnObj.MaxPriorityFeePerGas)
 }

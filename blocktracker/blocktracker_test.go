@@ -107,7 +107,7 @@ func TestBlockTracker_Lifecycle(t *testing.T) {
 	for {
 		select {
 		case data := <-sub:
-			//t.Log(*data)
+			//t.Log(*asset)
 			for _, block := range data.Added {
 				t.Log(block.Number)
 			}

@@ -207,6 +207,7 @@ func (a *Contract) Call(method string, block core.BlockNumber, args ...interface
 	}
 
 	data, err := m.Encode(args)
+	//fmt.Println(data)
 	if err != nil {
 		return nil, err
 	}

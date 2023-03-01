@@ -367,7 +367,7 @@ func TestAbi_ParseMethodSignature(t *testing.T) {
 func TestABI_FROMFILE(t *testing.T) {
 	// "/Users/nilei/GolandProjects/ethgo/abi"
 	//file, err := os.Getwd()
-	file, err := os.Open("../data/uniswap-v2/router02.abi")
+	file, err := os.Open("../asset/uniswap-v2/router02.abi")
 	assert.NoError(t, err)
 	defer file.Close()
 	t.Logf("%T", file)

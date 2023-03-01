@@ -390,7 +390,7 @@ func testHTTPEndpoint(endpoint string) error {
 //		args = append(args, "--dev.period", strconv.Itoa(config.Period))
 //	}
 //
-//	// add data dir
+//	// add asset dir
 //	args = append(args, "--datadir", "/eth1data")
 //
 //	// add ipcpath
